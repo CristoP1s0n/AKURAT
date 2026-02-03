@@ -24,10 +24,15 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'nama' => fake()->name(), // Ubah dari 'name' ke 'nama'
+            'nip' => fake()->unique()->numerify('##################'),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'role' => 'staff',
+            'jabatan' => 'Staff Pelaksana',
+            'golongan' => 'III/a',
+            'unit_id' => 1, // Pastikan ID ini ada di tabel unit_kerja
+            'is_active' => true,
             'remember_token' => Str::random(10),
         ];
     }

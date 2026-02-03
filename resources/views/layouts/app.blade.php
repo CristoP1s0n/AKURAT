@@ -6,7 +6,6 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'AKURAT - Aplikasi Kinerja Terukur') }}</title>
-e
 
         <!-- Tailwind CSS CDN -->
         <script src="https://cdn.tailwindcss.com"></script>
@@ -18,22 +17,26 @@ e
         <style>
             body {
                 font-family: 'Inter', sans-serif;
-                background: linear-gradient(135deg, #e52d27 0%, #b31217 100%);
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                 background-attachment: fixed;
                 min-height: 100vh;
                 color: white;
             }
 
             .glass {
-                background: rgba(255, 255, 255, 0.15);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
                 border-radius: 15px;
             }
 
+            aside {
+                background: rgba(15, 23, 42, 0.9) !important; 
+            }
+
             .sidebar-item-active {
-                background: rgba(239, 68, 68, 0.8);
+                background: rgba(59, 130, 246, 0.8);
                 border-radius: 0 25px 25px 0;
                 color: white !important;
             }
@@ -46,7 +49,7 @@ e
         <aside class="w-64 fixed h-full bg-black/20 backdrop-blur-lg border-r border-white/10">
             <div class="p-6 text-center">
                 <!-- logo di public/img/logo-manado.png -->
-                <img src="{{ asset('img/logo-manado.png') }}" class="w-14 mx-auto mb-3" alt="Logo">
+                <img src="{{ asset('img/logo-manado.webp') }}" class="w-14 mx-auto mb-3" alt="Logo">
                 <h2 class="font-bold text-[10px] uppercase tracking-widest text-white/80 leading-tight">Dinas Kesehatan<br>Kota Manado
                 </h2>
             </div>

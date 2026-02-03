@@ -7,20 +7,20 @@
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10 text-white">
     <div class="glass p-6 text-center">
         <p class="text-white/60 text-xs mb-2 uppercase tracking-wider">Total Pegawai</p>
-        <h2 class="text-4xl font-bold">{{ \App\Models\User::count() }}</h2>
+        <h2 class="text-4xl font-bold">{{ $totalPegawai }}</h2>
     </div>
     <div class="glass p-6 text-center">
         <p class="text-white/60 text-xs mb-2 uppercase tracking-wider">Progress Unggah Berkas</p>
-        <h2 class="text-4xl font-bold">85%</h2>
+        <h2 class="text-4xl font-bold">{{ $progressUpload }}%</h2>
     </div>
     <div class="glass p-6 text-center">
         <p class="text-white/60 text-xs mb-2 uppercase tracking-wider">Rata-rata Skor Kinerja</p>
-        <h2 class="text-4xl font-bold">90</h2>
+        <h2 class="text-4xl font-bold">{{ $rataRataDinas }}</h2>
     </div>
     <div class="glass p-6 text-center border-l-4 border-red-500">
         <p class="text-white/60 text-xs mb-2 uppercase tracking-wider">Berkas Belum Dinilai</p>
         <h2 class="text-4xl font-bold text-red-200 bg-red-600/40 rounded-lg inline-block px-4 py-1">
-            {{ \App\Models\BerkasKinerja::where('status_penilaian', 'belum')->count() }}
+            {{ $berkasBelumDinilai }}
         </h2>
     </div>
 </div>
