@@ -135,10 +135,21 @@
                    class="sidebar-item flex items-center px-6 py-3 text-xs {{ request()->routeIs('dashboard') ? 'sidebar-item-active' : 'text-blue-200 hover:text-white' }}">
                     <i class="fas fa-th-large w-5"></i> <span class="ml-3">Dashboard</span>
                 </a>
+                <!-- PENILAIAN BAWAHAN: Hanya untuk Atasan -->
+                @if(in_array(auth()->user()->role, ['kadis', 'kabag', 'kasie']))
                 <a href="{{ route('penilaian.index') }}" 
-                   class="sidebar-item flex items-center px-6 py-3 text-xs {{ request()->routeIs('penilaian.*') ? 'sidebar-item-active' : 'text-blue-200 hover:text-white' }}">
+                class="sidebar-item flex items-center px-6 py-3 text-xs {{ request()->routeIs('penilaian.*') ? 'sidebar-item-active' : 'text-blue-200 hover:text-white' }}">
                     <i class="fas fa-file-signature w-5"></i> <span class="ml-3">Penilaian & Kriteria</span>
                 </a>
+                @endif
+
+                <!-- UNGGAH BERKAS SAYA: Untuk Staff & Semua Pegawai -->
+                @if(auth()->user()->role !== 'kadis')
+                <a href="{{ route('kinerja.index') }}" 
+                class="sidebar-item flex items-center px-6 py-3 text-xs {{ request()->routeIs('kinerja.index') ? 'sidebar-item-active' : 'text-blue-200 hover:text-white' }}">
+                    <i class="fas fa-cloud-upload-alt w-5"></i> <span class="ml-3">Unggah Berkas</span>
+                </a>
+                @endif
 
                 <!-- Menu khusus kadis -->
                 @if(auth()->user()->role == 'kadis')
@@ -148,17 +159,22 @@
                 </a>
                 @endif
 
-                <a href="#" class="sidebar-item flex items-center px-6 py-3 text-xs text-blue-200 hover:text-white">
-                    <i class="fas fa-building w-5"></i> <span class="ml-3">Unit Kerja</span>
+                <!-- UNIT KERJA: Semua Role (Transparansi Struktur) -->
+                <a href="{{ route('unit-kerja.index') }}" 
+                class="sidebar-item flex items-center px-6 py-3 text-xs {{ request()->routeIs('unit-kerja.*') ? 'sidebar-item-active' : 'text-blue-200 hover:text-white' }}">
+                    <i class="fas fa-sitemap w-5"></i> <span class="ml-3">Unit Kerja</span>
                 </a>
-                <a href="#" class="sidebar-item flex items-center px-6 py-3 text-xs text-blue-200 hover:text-white">
-                    <i class="fas fa-chart-bar w-5"></i> <span class="ml-3">Laporan Kinerja</span>
+
+                <!-- LAPORAN KINERJA: Semua Role (Melihat Rekap Tahunan) -->
+                <a href="{{ route('laporan.index') }}" 
+                class="sidebar-item flex items-center px-6 py-3 text-xs {{ request()->routeIs('laporan.*') ? 'sidebar-item-active' : 'text-blue-200 hover:text-white' }}">
+                    <i class="fas fa-chart-line w-5"></i> <span class="ml-3">Laporan Kinerja</span>
                 </a>
-                </nav>
+            </nav>
         </aside>
 
 
-        <main class="flex-1 ml-64 min-h-screen">
+        <main class="flex-1 ml-64 min-h-screen max-w-[calc(100vw-256px)] overflow-x-hidden">
             <!-- Header -->
             <header class="p-4 flex justify-between items-center sticky top-0 z-50 bg-blue-900/30 backdrop-blur-md border-b border-blue-400/10">
                 <div class="relative w-1/3">

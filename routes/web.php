@@ -4,7 +4,10 @@ use App\Http\Controllers\KinerjaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UnitKerjaController;
+use App\Http\Controllers\LaporanController;
 use Illuminate\Support\Facades\Route;
+
 
 // 1. Halaman Publik
 Route::get('/', function () {
@@ -17,6 +20,9 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
     
     // --- DASHBOARD ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/unit-kerja', [UnitKerjaController::class, 'index'])->name('unit-kerja.index');
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
 
     // --- PROFIL (Breeze) ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
