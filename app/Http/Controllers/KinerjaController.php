@@ -423,20 +423,19 @@ class KinerjaController extends Controller
         return back()->with('success', 'Butir Tupoksi berhasil ditambahkan.');
     }
 
+    // 1. Tampilan Unggah Staff
     public function indexUpload()
     {
         $user = auth()->user();
-        // Ambil setting dari database
-        $triwulanAktif = \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1;
-        $tahunAktif = \DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
+        $triwulanAktif = DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1;
+        $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
-        // Ambil data Tupoksi milik user yang login beserta kriterianya
-        // dan cek apakah sudah ada berkas yang diunggah untuk triwulan aktif
-        $tupoksis = \App\Models\Tupoksi::with(['kriteria' => function($query) use ($triwulanAktif) {
-            $query->where('t' . $triwulanAktif, true);
-        }, 'kriteria.berkasKinerja' => function($query) use ($user, $triwulanAktif) {
-            $query->where('user_id', $user->id)->where('triwulan', $triwulanAktif);
-        }, 'kriteria.berkasKinerja.penilaian'])
+        // Ambil Tupoksi dan Berkas yang sudah diunggah untuk tupoksi tersebut
+        $tupoksis = Tupoksi::with(['kriteria' => function($q) use ($triwulanAktif) {
+            $q->where('t'.$triwulanAktif, true);
+        }, 'berkasKinerja' => function($q) use ($user, $triwulanAktif) {
+            $q->where('user_id', $user->id)->where('triwulan', $triwulanAktif);
+        }])
         ->where('user_id', $user->id)
         ->where('tahun', $tahunAktif)
         ->get();

@@ -8,7 +8,14 @@ class Penilaian extends Model
 {
     protected $table = 'penilaian';
 
-    protected $fillable = ['berkas_id', 'penilai_id', 'skor', 'catatan_atasan'];
+    protected $fillable = [
+        'kriteria_id',
+        'user_id',   
+        'triwulan',  
+        'penilai_id',
+        'skor',
+        'catatan_atasan'
+    ];
 
     public function berkas()
     {

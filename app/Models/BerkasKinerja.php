@@ -9,8 +9,12 @@ class BerkasKinerja extends Model
     protected $table = 'berkas_kinerja';
 
     protected $fillable = [
-        'user_id', 'kriteria_id', 'triwulan', 'tahun', 
-        'file_path', 'keterangan_pegawai', 'status_penilaian'
+        'user_id', 
+        'tupoksi_id',
+        'triwulan', 
+        'tahun', 
+        'file_path', 
+        'status_penilaian'
     ];
 
     public function user()
