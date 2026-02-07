@@ -222,9 +222,11 @@
                 @endif
             </div>
 
-            <div class="p-8 pt-2">
+            <div class="p-8 pt-6">
                 @if(isset($slot)) {{ $slot }} @endif
-                @yield('content')
+                <div class="max-w-full">
+                    @yield('content')
+                </div>
             </div>
         </main>
     </div>

@@ -1,25 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid text-white">
-    <div class="mb-8 flex justify-between items-end">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tight">Struktur Organisasi</h1>
-            <p class="text-blue-200 text-sm opacity-80 mt-1">Klik kotak untuk memperluas (Expand) struktur di bawahnya</p>
-        </div>
-        <div class="glass px-4 py-2 rounded-xl border border-white/10">
-            <span class="text-[10px] font-black uppercase text-blue-300 tracking-widest">Mode Interaktif</span>
-        </div>
+<div class="text-white">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold tracking-tight">Struktur Organisasi</h1>
+        <p class="text-blue-200 text-sm opacity-80 mt-1">Klik kotak untuk Expand/Collapse (melihat bawahan).</p>
     </div>
 
-    <!-- Wrapper Diagram -->
-    <div class="glass-strong p-4 overflow-hidden relative" style="min-height: 80vh;">
-        <!-- Area Scroll -->
-        <div class="overflow-auto max-h-[75vh]" id="scroll-wrapper">
-            <div id="chart_div" class="flex justify-center p-10 transition-all duration-500 transform origin-top scale-90">
-                {{-- Diagram Muncul di Sini --}}
+    <!-- BOX WRAPPER: Menjaga diagram tetap di dalam kotak biru -->
+    <div class="glass-strong p-4 sm:p-8 relative w-full overflow-hidden" style="height: 75vh;">
+        
+        <!-- AREA SCROLL INTERNAL: Hanya area ini yang boleh geser kanan-kiri -->
+        <div class="w-full h-full overflow-auto custom-scrollbar" id="chart-container">
+            <div id="chart_div" class="flex justify-center items-start origin-top transition-all duration-500">
+                <!-- Google Chart Render -->
             </div>
         </div>
+
     </div>
 </div>
 
@@ -34,125 +31,119 @@
         data.addColumn('string', 'Parent');
         data.addColumn('string', 'ToolTip');
 
-        // Array untuk menyimpan data mentah agar bisa di-loop untuk collapse
-        var rawData = [];
+        var allNodes = [];
 
-        // 1. Masukkan Unit Kerja
+        // 1. Data Unit Kerja
         @foreach($units as $u)
-            rawData.push({
+            allNodes.push({
                 id: 'unit_{{ $u->id }}',
                 parent: '{{ $u->parent_id ? "unit_".$u->parent_id : "" }}',
                 level: '{{ $u->level }}',
-                html: '<div class="node-unit {{ $u->level == "seksi" ? "is-seksi" : "is-top" }}">' +
-                      '<div class="font-black text-[10px] uppercase">{{ $u->nama_unit }}</div>' +
-                      '<div class="text-[7px] opacity-60 mt-1 uppercase">{{ $u->level }}</div>' +
+                html: '<div class="node-box {{ $u->level == "seksi" ? "node-seksi" : "node-bidang" }}">' +
+                      '<div class="text-[10px] font-black uppercase text-white">{{ $u->nama_unit }}</div>' +
+                      '<div class="text-[7px] text-blue-300 font-bold mt-1 uppercase">{{ $u->level }}</div>' +
                       '</div>'
             });
         @endforeach
 
-        // 2. Masukkan Staff
+        // 2. Data Staff
         @foreach($users as $user)
-            rawData.push({
+            @if($user->role == 'staff')
+            allNodes.push({
                 id: 'user_{{ $user->id }}',
                 parent: 'unit_{{ $user->unit_id }}',
                 level: 'staff',
-                html: '<div class="node-staff">' +
-                      '<div class="font-bold text-[9px]">{{ $user->nama }}</div>' +
-                      '<div class="text-[7px] text-blue-300">{{ $user->jabatan }}</div>' +
+                html: '<div class="node-box node-staff">' +
+                      '<div class="text-[9px] font-bold text-white">{{ $user->nama }}</div>' +
+                      '<div class="text-[7px] text-blue-100 opacity-70 italic">{{ $user->jabatan }}</div>' +
                       '</div>'
             });
+            @endif
         @endforeach
 
-        // Masukkan ke DataTable Google
-        rawData.forEach(function(item) {
-            data.addRow([{ v: item.id, f: item.html }, item.parent, '']);
+        allNodes.forEach(function(n) {
+            data.addRow([{ v: n.id, f: n.html }, n.parent, '']);
         });
 
         var chart = new google.visualization.OrgChart(document.getElementById('chart_div'));
 
-        // Pengaturan Awal
+        // Event Listener: Sesuaikan ukuran SETELAH render atau klik
+        google.visualization.events.addListener(chart, 'ready', function() {
+            fitToBox();
+        });
+        google.visualization.events.addListener(chart, 'select', function() {
+            // Berikan sedikit jeda agar animasi collapse selesai baru dihitung ulang ukurannya
+            setTimeout(fitToBox, 200); 
+        });
+
         chart.draw(data, {
             'allowHtml': true,
-            'allowCollapse': true, // Mengaktifkan fitur klik untuk buka/tutup
-            'size': 'medium',
-            'nodeClass': 'glass-node'
+            'allowCollapse': true,
+            'size': 'small',
+            'nodeClass': 'google-node-reset'
         });
 
         /**
-         * LOGIKA DEFAULT STATE:
-         * Kita loop semua baris. Jika level-nya adalah 'seksi' atau 'staff',
-         * kita panggil fungsi collapse pada PARENT-nya.
+         * DEFAULT STATE: Sembunyikan Seksi dan Staff
          */
         for (var i = 0; i < data.getNumberOfRows(); i++) {
-            var nodeId = data.getValue(i, 0);
-            
-            // Cari data asli untuk cek level
-            var originalData = rawData.find(r => r.id === nodeId);
-            
-            // Jika ini adalah Seksi atau Staff, tutup parent-nya agar mereka tersembunyi di awal
-            if (originalData && (originalData.level === 'seksi' || originalData.level === 'staff')) {
+            var id = data.getValue(i, 0);
+            var info = allNodes.find(n => n.id === id);
+            // Jika unit tingkat seksi atau individu staff, tutup induknya
+            if (info && (info.level === 'seksi' || info.level === 'staff')) {
                 chart.collapse(i, true);
             }
         }
     }
+
+    // Fungsi sakti agar diagram tidak pernah memotong screen
+    function fitToBox() {
+        const container = document.getElementById('chart-container');
+        const chartDiv = document.getElementById('chart_div');
+        
+        // Hitung rasio lebar
+        const ratio = (container.offsetWidth - 40) / chartDiv.scrollWidth;
+        
+        // Jika diagram lebih lebar dari kotak induknya, kecilkan skalanya (Zoom Out)
+        if (ratio < 1) {
+            chartDiv.style.transform = `scale(${ratio})`;
+        } else {
+            chartDiv.style.transform = `scale(1)`;
+        }
+    }
+
+    window.onresize = fitToBox;
 </script>
 
 <style>
-    /* Reset Google Chart Nodes */
-    .google-visualization-orgchart-node {
-        border: none !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        padding: 4px !important;
+    /* Reset Google Chart */
+    .google-node-reset { border: none !important; background: transparent !important; padding: 4px !important; }
+    .google-visualization-orgchart-table { border-collapse: separate !important; border-spacing: 15px 10px !important; }
+
+    /* Kotak Glassmorphism */
+    .node-box {
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 10px;
+        min-width: 150px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
         cursor: pointer;
     }
 
-    /* Node Unit (Bidang/Sekretariat/Subbag) */
-    .node-unit {
-        background: rgba(30, 58, 138, 0.5) !important;
-        backdrop-filter: blur(15px);
-        border: 1.5px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        padding: 12px 15px;
-        min-width: 170px;
-        color: white;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
-    }
-
-    .node-unit.is-seksi {
-        background: rgba(30, 58, 138, 0.3) !important;
-        border-color: rgba(59, 130, 246, 0.3);
-    }
-
-    /* Node Staff */
-    .node-staff {
-        background: rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 8px;
-        min-width: 140px;
-        color: #dbeafe;
-    }
-
-    .node-unit:hover, .node-staff:hover {
-        transform: translateY(-5px);
-        border-color: rgba(255, 255, 255, 0.5);
-        background: rgba(59, 130, 246, 0.4) !important;
-    }
+    .node-bidang { background: rgba(30, 58, 138, 0.7) !important; border-color: rgba(59, 130, 246, 0.5); }
+    .node-seksi { background: rgba(30, 58, 138, 0.4) !important; border-color: rgba(59, 130, 246, 0.3); }
+    .node-staff { background: rgba(255, 255, 255, 0.08) !important; border: 1px dashed rgba(255,255,255,0.2); }
 
     /* Garis Penghubung */
-    .google-visualization-orgchart-lineleft,
-    .google-visualization-orgchart-lineright,
-    .google-visualization-orgchart-linebottom,
-    .google-visualization-orgchart-linetop {
+    .google-visualization-orgchart-lineleft, .google-visualization-orgchart-lineright, 
+    .google-visualization-orgchart-linebottom, .google-visualization-orgchart-linetop {
         border-color: rgba(147, 197, 253, 0.3) !important;
-        border-width: 2px !important;
     }
 
-    /* Scrollbar Styling */
-    #scroll-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
-    #scroll-wrapper::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    /* Scrollbar Tipis untuk Area Diagram */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 </style>
 @endsection
