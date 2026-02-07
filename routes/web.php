@@ -55,9 +55,12 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
 
         // --- DATA PEGAWAI
         Route::get('/pegawai', [UserController::class, 'index'])->name('pegawai.index');
+        Route::post('/pegawai/store', [UserController::class, 'store'])->name('pegawai.store');
 
         // Rute Manajemen Tupoksi
         Route::post('/tupoksi/store', [KinerjaController::class, 'storeTupoksi'])->name('tupoksi.store');
+        Route::delete('/tupoksi/hapus/{id}', [KinerjaController::class, 'hapusTupoksi'])->name('tupoksi.destroy');
+    
 
         Route::prefix('kriteria')->name('kriteria.')->group(function () {
             Route::post('/store', [KinerjaController::class, 'storeKriteria'])->name('store');

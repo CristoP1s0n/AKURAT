@@ -58,6 +58,9 @@
                                 <a href="{{ route('kinerja.berkas.download', $berkas->id) }}" class="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center transition-colors">
                                     <i class="fas fa-file-pdf mr-1.5"></i> LIHAT BERKAS DUKUNG
                                 </a>
+                            @else
+                                <span class="text-white/20">|</span>
+                                <span class="text-[10px] text-white/30 italic"> Berkas belum tersedia</span>
                             @endif
                         </div>
                     </div>
@@ -68,6 +71,15 @@
                     <button onclick="openModalKriteria('{{ $tupoksi->id }}', '{{ addslashes($tupoksi->nama_tupoksi) }}')" class="text-[10px] bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg font-bold border border-white/20 transition-all flex items-center">
                         <i class="fas fa-plus-circle mr-1 text-sm text-blue-400"></i> Tambah Rincian
                     </button>
+
+                    <!-- Tombol Hapus Tupoksi -->
+                    <form action="{{ route('tupoksi.destroy', $tupoksi->id) }}" method="POST" 
+              onsubmit="return confirm('PERINGATAN SANGAT KERAS!\n\nMenghapus Butir Tupoksi ini akan menghapus:\n1. Seluruh Rincian Kriteria di dalamnya.\n2. Seluruh Berkas Bukti yang sudah diunggah staff.\n3. Seluruh NILAI SKOR dari Triwulan 1 sampai 4.\n\nData tidak bisa dikembalikan. Lanjutkan?')">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="w-9 h-9 bg-red-500/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition-all flex items-center justify-center border border-red-500/30" title="Hapus Seluruh Tupoksi">
+                            <i class="fas fa-trash-alt text-sm"></i>
+                        </button>
+                    </form>
                     @endif
                 </div>
             </div>
@@ -114,18 +126,20 @@
                             </td>
                             <td class="px-6 py-4 text-right flex justify-end gap-2">
                                 @if(auth()->user()->role == 'kadis')
+                                <div class="flex justify-end gap-2">
                                 <!-- Tombol Edit (Membuka Modal Edit) -->
-                                <button onclick="openModalEditKriteria('{{ $kriteria->id }}', '{{ $kriteria->nama_kriteria }}', {{ $kriteria->t1 }}, {{ $kriteria->t2 }}, {{ $kriteria->t3 }}, {{ $kriteria->t4 }})" 
-                                        class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition flex items-center justify-center">
-                                    <i class="fas fa-edit text-xs"></i>
-                                </button>
-
-                                <form action="{{ route('kriteria.destroy', $kriteria->id) }}" method="POST" onsubmit="return confirm('PERINGATAN KERAS!\n\nMenghapus kriteria ini akan menghapus SELURUH NILAI (Skor 0-3) yang sudah diberikan atasan dari Triwulan 1 sampai 4 untuk pegawai ini.\n\nData yang dihapus tidak dapat dikembalikan. Apakah Anda yakin?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition flex items-center justify-center ml-auto">
-                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    <button onclick="openModalEditKriteria('{{ $kriteria->id }}', '{{ $kriteria->nama_kriteria }}', {{ $kriteria->t1 }}, {{ $kriteria->t2 }}, {{ $kriteria->t3 }}, {{ $kriteria->t4 }})" 
+                                            class="w-9 h-9 rounded-lg bg-blue-500 hover:bg-blue-400 text-white shadow-lg shadow-blue-500/40 transition-all flex items-center justify-center transform active:scale-90" title="Edit Kriteria">
+                                        <i class="fas fa-pencil-alt text-xs"></i>
                                     </button>
-                                </form>
+
+                                    <form action="{{ route('kriteria.destroy', $kriteria->id) }}" method="POST" onsubmit="return confirm('PERINGATAN KERAS!\n\nMenghapus kriteria ini akan menghapus SELURUH NILAI (Skor 0-3) yang sudah diberikan atasan dari Triwulan 1 sampai 4 untuk pegawai ini.\n\nData yang dihapus tidak dapat dikembalikan. Apakah Anda yakin?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="w-9 h-9 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center border border-red-500/20">
+                                            <i class="fas fa-trash-alt text-xs"></i>
+                                        </button>
+                                    </form>
+                                </div>
                                 @endif
                             </td>
                         </tr>

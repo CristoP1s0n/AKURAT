@@ -43,7 +43,7 @@
                 @if($berkas && $berkas->file_path !== '-')
                     <!-- Link Lihat/Download -->
                     <a href="{{ route('kinerja.berkas.download', $berkas->id) }}" 
-                       class="bg-white/10 hover:bg-white/20 text-blue-200 px-4 py-2 rounded-lg text-[10px] font-bold uppercase border border-white/10 transition-all flex items-center">
+                       class="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 px-4 py-2 rounded-lg text-[10px] font-bold uppercase border border-emerald-500/30 transition-all flex items-center">
                         <i class="fas fa-eye mr-2"></i> Lihat Berkas
                     </a>
 

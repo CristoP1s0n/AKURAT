@@ -60,6 +60,12 @@ class KinerjaController extends Controller
 
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
+        $pegawai->load(['tupoksis' => function($q) use ($tahunAktif) {
+        $q->where('tahun', $tahunAktif);
+        }, 'tupoksis.berkasKinerja' => function($q) use ($id, $triwulanAktif) {
+        $q->where('user_id', $id)->where('triwulan', $triwulanAktif);
+        }, 'tupoksis.kriteria']);
+
         //Performance service (real time skor)
         $skorAngka = $this->perfService->hitungNilaiTriwulan($pegawai, $triwulanAktif, $tahunAktif);
 
@@ -432,6 +438,60 @@ class KinerjaController extends Controller
         ->get();
 
         return view('kinerja.index', compact('tupoksis', 'triwulanAktif', 'tahunAktif'));
+    }
+
+    public function hapusTupoksi($id)
+    {
+        // Hanya Kadis yang boleh menghapus kontainer utama tugas
+        if (auth()->user()->role !== 'kadis') {
+            abort(403);
+        }
+
+        $tupoksi = Tupoksi::with('kriteria')->findOrFail($id);
+
+        DB::beginTransaction();
+        try {
+            $namaTupoksi = $tupoksi->nama_tupoksi;
+
+            // 1. Ambil semua ID kriteria di bawah tupoksi ini
+            $kriteriaIds = $tupoksi->kriteria->pluck('id');
+
+            // 2. Hapus semua penilaian yang terhubung dengan kriteria-kriteria tersebut
+            Penilaian::whereIn('kriteria_id', $kriteriaIds)->delete();
+
+            // 3. Hapus semua berkas yang terhubung dengan Tupoksi ini
+            // (Opsional: Hapus file fisik di storage jika perlu)
+            $berkas = BerkasKinerja::where('tupoksi_id', $id)->get();
+            foreach ($berkas as $b) {
+                if (Storage::disk('public')->exists($b->file_path)) {
+                    Storage::disk('public')->delete($b->file_path);
+                }
+                $b->delete();
+            }
+
+            // 4. Hapus semua kriteria
+            $tupoksi->kriteria()->delete();
+
+            // 5. Hapus Tupoksi utama
+            $tupoksi->delete();
+
+            // 6. Simpan Log
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'HARD_DELETE_TUPOKSI',
+                'subject_table' => 'tupoksi',
+                'subject_id' => $id,
+                'description' => "Kadis menghapus PERMANEN Butir Tupoksi: '$namaTupoksi' beserta SELURUH kriteria, berkas, dan nilai di dalamnya.",
+                'ip_address' => request()->ip()
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Butir Tupoksi dan seluruh data di dalamnya berhasil dihapus permanen.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error("Error hapusTupoksi: " . $e->getMessage());
+            return back()->with('error', 'Gagal menghapus Tupoksi.');
+        }
     }
 
     
