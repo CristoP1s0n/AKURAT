@@ -174,16 +174,18 @@
         </aside>
 
 
-        <main class="flex-1 ml-64 min-h-screen max-w-[calc(100vw-256px)] overflow-x-hidden">
+        <main class="flex-1 ml-64 min-h-screen relative">
             <!-- Header -->
-            <header class="p-4 flex justify-between items-center sticky top-0 z-50 bg-blue-900/30 backdrop-blur-md border-b border-blue-400/10">
-                <div class="relative w-1/3">
+            <header class="sticky top-0 z-40 p-4 flex justify-between items-center bg-blue-900/40 backdrop-blur-md border-b border-blue-400/10">
+                <!-- Form Search Global -->
+                <form action="{{ route('penilaian.index') }}" method="GET" class="relative w-1/3">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-blue-300">
                         <i class="fas fa-search text-xs"></i>
                     </span>
-                    <input type="text" 
-                           class="w-full bg-blue-900/30 border border-blue-400/20 rounded-lg py-2 pl-9 pr-4 text-xs text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50" placeholder="Cari Nama, NIP...">
-                </div>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                        class="w-full bg-blue-900/30 border border-blue-400/20 rounded-lg py-2 pl-9 pr-4 text-xs text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all" 
+                        placeholder="Cari Nama atau NIP Pegawai...">
+                </form>
 
                 <!-- Right Header -->
                 <div class="flex items-center space-x-6">
@@ -199,7 +201,7 @@
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" 
-                                class="bg-blue-900/40 hover:bg-blue-800/60 px-4 py-2 rounded-lg text-[11px] font-bold flex items-center border border-blue-400/20 transition text-blue-100">
+                                class="bg-red-500/20 hover:bg-red-500/40 px-4 py-2 rounded-lg text-[11px] font-bold flex items-center border border-red-400/20 transition text-red-100 uppercase tracking-tighter">
                             <i class="fas fa-sign-out-alt mr-2"></i> Logout
                         </button>
                     </form>

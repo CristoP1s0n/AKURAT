@@ -4,14 +4,67 @@
 <div class="container-fluid text-white">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Data Pegawai</h1>
-        <div class="flex gap-3">
-            <button class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-semibold flex items-center transition">
-                <i class="fas fa-filter mr-2"></i> Filter Pencarian
-            </button>
+            
             <button onclick="openModalPegawai()" class="btn-primary px-6 py-2.5 rounded-lg text-sm font-bold flex items-center transition">
                 <i class="fas fa-plus mr-2"></i> Tambah pegawai baru
-        </div>
+            </button>
     </div>
+
+     <!-- Panel Filter Pencarian -->
+    <div class="glass-strong p-6 mb-8 border border-white/20">
+        <form action="{{ route('pegawai.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <!-- Search Nama/NIP -->
+            <div class="md:col-span-1">
+                <label class="text-[9px] font-black uppercase text-blue-200 mb-1 block">Cari Nama / NIP</label>
+                <input type="text" name="search" value="{{ request('search') }}" 
+                    class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 transition-all" placeholder="Ketik keyword...">
+            </div>
+
+            <!-- Unit Kerja -->
+            <div>
+                <label class="text-[9px] font-black uppercase text-blue-200 mb-1 block">Unit Kerja</label>
+                <select name="unit_id" class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white">
+                    <option value="">Semua Unit</option>
+                    @foreach($units as $u)
+                        <option value="{{ $u->id }}" {{ request('unit_id') == $u->id ? 'selected' : '' }}>{{ $u->nama_unit }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Golongan -->
+            <div>
+                <label class="text-[9px] font-black uppercase text-blue-200 mb-1 block">Golongan</label>
+                <select name="golongan" class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white">
+                    <option value="">Semua Golongan</option>
+                    @foreach(['II/a','II/b','II/c','III/a','III/b','III/c','III/d','IV/a','IV/b','IV/c'] as $gol)
+                        <option value="{{ $gol }}" {{ request('golongan') == $gol ? 'selected' : '' }}>{{ $gol }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Status Aktif -->
+            <div>
+                <label class="text-[9px] font-black uppercase text-blue-200 mb-1 block">Status Akun</label>
+                <select name="status" class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white">
+                    <option value="">Semua Status</option>
+                    <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
+                    <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Non-Aktif</option>
+                </select>
+            </div>
+
+            <!-- Tombol Aksi Filter -->
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-lg">
+                    Filter
+                </button>
+                <a href="{{ route('pegawai.index') }}" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all border border-white/10" title="Reset Filter">
+                    <i class="fas fa-sync-alt text-xs"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+
 
     <div class="glass overflow-hidden">
         <table class="w-full text-sm">

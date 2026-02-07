@@ -12,11 +12,43 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (auth()->user()->role !== 'kadis') { abort(403); }
 
-        $pegawai = User::with('unitKerja')->orderBy('nama', 'asc')->get();
+        // 1. Inisialisasi Query
+        $query = User::with('unitKerja');
+
+        // 2. Logika Filter Pencarian Nama/NIP
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('nama', 'ilike', '%' . $request->search . '%') // ilike untuk PostgreSQL agar case-insensitive
+                ->orWhere('nip', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // 3. Filter Unit Kerja
+        if ($request->filled('unit_id')) {
+            $query->where('unit_id', $request->unit_id);
+        }
+
+        // 4. Filter Golongan
+        if ($request->filled('golongan')) {
+            $query->where('golongan', $request->golongan);
+        }
+
+        // 5. Filter Role
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+
+        // 6. Filter Status
+        if ($request->filled('status')) {
+            $status = $request->status == 'aktif' ? true : false;
+            $query->where('is_active', $status);
+        }
+
+        $pegawai = $query->orderBy('nama', 'asc')->get();
         
         // Ambil data untuk dropdown di modal
         $units = UnitKerja::orderBy('nama_unit', 'asc')->get();

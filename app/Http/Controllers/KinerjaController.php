@@ -30,14 +30,26 @@ class KinerjaController extends Controller
     {
         $user = auth()->user();
 
-        // Logika Otoritas (Hal 6)
+        // 1. Inisialisasi Query berdasarkan Otoritas (Dokumen Hal 6)
         if ($user->role === 'kadis') {
-            // Kadin bisa melihat semua kecuali dirinya sendiri
-            $pegawai = User::where('id', '!=', $user->id)->with('unitKerja')->get();
+            // Kadin melihat semua kecuali dirinya sendiri
+            $pegawaiQuery = User::where('id', '!=', $user->id);
         } else {
             // Atasan hanya melihat bawahan langsung (parent_id)
-            $pegawai = User::where('parent_id', $user->id)->with('unitKerja')->get();
+            $pegawaiQuery = User::where('parent_id', $user->id);
         }
+
+        // 2. Tambahkan Filter Search Global (Menghidupkan Fitur di Header)
+        if ($request->filled('search')) {
+            $pegawaiQuery->where(function($q) use ($request) {
+                // Menggunakan ilike untuk PostgreSQL (Case Insensitive)
+                $q->where('nama', 'ilike', '%' . $request->search . '%')
+                ->orWhere('nip', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // 3. Eksekusi dengan Eager Loading 'unitKerja' agar tidak boros query (N+1 fix)
+        $pegawai = $pegawaiQuery->with('unitKerja')->orderBy('nama', 'asc')->get();
 
         return view('penilaian.index', compact('pegawai'));
     }
