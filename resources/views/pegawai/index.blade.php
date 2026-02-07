@@ -182,7 +182,7 @@
                     <div>
                         <label class="text-[10px] uppercase font-bold text-blue-200 mb-1 block">Atasan Langsung (Penilai)</label>
                         <select name="parent_id" class="w-full bg-black/40 border border-white/20 rounded-xl p-3 text-sm text-white">
-                            <option value="">-- Tanpa Atasan (Kadin) --</option>
+                            <option value="">Kepala Dinas</option>
                             @foreach($atasans as $a)
                                 <option value="{{ $a->id }}">{{ $a->nama }} ({{ $a->jabatan }})</option>
                             @endforeach

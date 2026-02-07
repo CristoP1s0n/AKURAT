@@ -1,7 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-<h1 class="text-3xl font-bold mb-8 text-white">Dashboard</h1>
+<div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-white">Dashboard <span class="text-blue-300 opacity-50">T{{ $triwulan }} - {{ $tahun }}</span></h1>
+    <div class="glass px-4 py-2 rounded-xl text-[10px] font-bold text-blue-200 uppercase tracking-widest">
+        Update Terakhir: {{ now()->format('d M Y H:i') }}
+    </div>
+</div>
 
 <!-- Statistik Cards -->
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
@@ -31,96 +36,67 @@
 
 <!-- Charts Section -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-    <div class="glass-strong p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="font-bold text-white text-lg">Performa rata-rata per Bidang</h3>
-            <button class="text-[10px] bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg uppercase font-bold transition">
-                View Report
-            </button>
+    <!-- Bar Chart -->
+    <div class="glass-strong p-8 flex flex-col">
+        <h3 class="font-bold text-white text-lg mb-6 items-center">
+            <i class="fas fa-chart-bar mr-3 text-blue-400"></i> Performa rata-rata per Bidang (%)
+        </h3>
+        <div class="w-full h-[300px]">
+            <canvas id="barChart"></canvas>
         </div>
-        <canvas id="barChart" height="200"></canvas>
     </div>
-    <div class="glass-strong p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="font-bold text-white text-lg">Komposisi Predikat</h3>
-            <p class="text-xs text-blue-100 font-semibold">From 2020-2021</p>
-        </div>
-        <div class="flex items-center justify-center">
-            <div class="relative" style="width: 200px; height: 200px;">
+
+    <!-- Donut Chart -->
+    <div class="glass-strong p-8 flex flex-col">
+        <h3 class="font-bold text-white text-lg mb-6 flex items-center">
+           <i class="fas fa-chart-pie mr-3 text-blue-400"></i>Komposisi Predikat
+        </h3>
+        <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+            <div class="w-full md:w-1/2 h-[250px] flex justify-center">
                 <canvas id="donutChart"></canvas>
             </div>
-            <div class="ml-8 space-y-3">
-                <div class="flex items-center">
-                    <span class="w-4 h-4 rounded-full bg-blue-400 mr-3 shadow-lg"></span>
-                    <span class="text-sm text-blue-50">Baik <span class="font-bold">38%</span></span>
-                </div>
-                <div class="flex items-center">
-                    <span class="w-4 h-4 rounded-full bg-blue-300 mr-3 shadow-lg"></span>
-                    <span class="text-sm text-blue-50">Sangat Baik <span class="font-bold">16%</span></span>
-                </div>
-                <div class="flex items-center">
-                    <span class="w-4 h-4 rounded-full bg-blue-200 mr-3 shadow-lg"></span>
-                    <span class="text-sm text-blue-50">Buruk <span class="font-bold">9%</span></span>
-                </div>
-                <div class="flex items-center">
-                    <span class="w-4 h-4 rounded-full bg-blue-100 mr-3 shadow-lg"></span>
-                    <span class="text-sm text-blue-50">Sangat Buruk <span class="font-bold">30%</span></span>
-                </div>
+            <div class="flex-1 space-y-4 w-full">
+                @foreach($predikats as $label => $count)
+                    <div class="flex items-center text-xs">
+                        <span class="w-3 h-3 rounded-full mr-2 {{ $loop->index == 0 ? 'bg-blue-400' : ($loop->index == 1 ? 'bg-blue-300' : ($loop->index == 2 ? 'bg-blue-200' : 'bg-white')) }}"></span>
+                        <span class="text-blue-100">{{ $label }}: <span class="font-bold text-white">{{ $count }} Org</span></span>
+                    </div>
+                @endforeach
             </div>
         </div>
     </div>
 </div>
 
-<!-- Tables Section -->
+<!-- Ranking Tables -->
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Top 5 -->
     <div class="glass-card overflow-hidden">
-        <div class="p-5 border-b border-white/20 bg-white/5">
-            <h3 class="text-center font-bold text-white">5 Performa Teratas</h3>
-        </div>
+        <div class="p-5 border-b border-white/20 bg-blue-500/10"><h3 class="font-bold text-white text-center">5 Performa Teratas</h3></div>
         <table class="w-full text-sm text-left">
-            <thead class="bg-white/10 text-xs uppercase text-blue-100 border-b border-white/10">
-                <tr>
-                    <th class="px-6 py-4 font-bold">No</th>
-                    <th class="px-6 py-4 text-left font-bold">Nama</th>
-                    <th class="px-6 py-4 text-left font-bold">NIP</th>
-                    <th class="px-6 py-4 text-left font-bold">Skor Kinerja</th>
+            <tbody class="divide-y divide-white/5">
+                @foreach($top5 as $p)
+                <tr class="hover:bg-white/5 transition">
+                    <td class="px-6 py-4 font-bold text-blue-200">#{{ $loop->iteration }}</td>
+                    <td class="px-6 py-4 text-white">{{ $p['nama'] }}</td>
+                    <td class="px-6 py-4 text-green-400 font-black text-right">{{ $p['skor'] }}</td>
                 </tr>
-            </thead>
-            <tbody class="divide-y divide-white/10">
-                @for($i=1; $i<=5; $i++)
-                <tr class="hover:bg-white/10 transition">
-                    <td class="px-6 py-4 text-blue-100 font-semibold">{{ $i }}</td>
-                    <td class="px-6 py-4 font-medium text-white">Pegawai Terbaik {{ $i }}</td>
-                    <td class="px-6 py-4 text-blue-200">1980010100{{ $i }}</td>
-                    <td class="px-6 py-4 font-bold text-green-300 text-base">95.5</td>
-                </tr>
-                @endfor
+                @endforeach
             </tbody>
         </table>
     </div>
 
+    <!-- Bottom 5 -->
     <div class="glass-card overflow-hidden">
-        <div class="p-5 border-b border-white/20 bg-white/5 text-center">
-            <h3 class="font-bold text-white text-lg">5 Performa Terendah</h3>
-        </div>
+        <div class="p-5 border-b border-white/20 bg-red-500/10 text-center"><h3 class="font-bold text-white">5 Performa Terendah</h3></div>
         <table class="w-full text-sm text-left">
-            <thead class="bg-white/10 text-xs uppercase text-blue-100 border-b border-white/10">
-                <tr>
-                    <th class="px-6 py-4 font-bold">No</th>
-                    <th class="px-6 py-4 text-left font-bold">Nama</th>
-                    <th class="px-6 py-4 text-left font-bold">NIP</th>
-                    <th class="px-6 py-4 text-left font-bold">Skor Kinerja</th>
+            <tbody class="divide-y divide-white/5">
+                @foreach($bottom5 as $p)
+                <tr class="hover:bg-white/5 transition">
+                    <td class="px-6 py-4 font-bold text-red-300">#{{ $loop->iteration }}</td>
+                    <td class="px-6 py-4 text-white">{{ $p['nama'] }}</td>
+                    <td class="px-6 py-4 text-red-400 font-black text-right">{{ $p['skor'] }}</td>
                 </tr>
-            </thead>
-            <tbody class="divide-y divide-white/10">
-                @for($i=1; $i<=5; $i++)
-                <tr class="hover:bg-white/10 transition">
-                    <td class="px-6 py-4 text-blue-100 font-semibold">{{ $i }}</td>
-                    <td class="px-6 py-4 font-medium text-white">Pegawai Kurang {{ $i }}</td>
-                    <td class="px-6 py-4 text-blue-200">1985010100{{ $i }}</td>
-                    <td class="px-6 py-4 font-bold text-red-300 text-base">45.0</td>
-                </tr>
-                @endfor
+                @endforeach
             </tbody>
         </table>
     </div>
@@ -130,54 +106,67 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Bar Chart dengan warna biru
-    new Chart(document.getElementById('barChart'), {
-        type: 'bar',
-        data: {
-            labels: ['Bidang A', 'Bidang B', 'Bidang C'],
-            datasets: [{
-                label: 'Performa %',
-                data: [65, 45, 60],
-                backgroundColor: 'rgba(96, 165, 250, 0.8)',
-                borderRadius: 8,
-                borderWidth: 0
-            }]
-        },
-        options: {
-            scales: { 
-                y: { 
-                    beginAtZero: true, 
-                    grid: { color: 'rgba(147, 197, 253, 0.1)' }, 
-                    ticks: { color: '#bfdbfe' } 
-                }, 
-                x: { 
-                    grid: { display: false },
-                    ticks: { color: '#bfdbfe' } 
-                } 
-            },
-            plugins: { 
-                legend: { display: false } 
-            }
-        }
-    });
+    // Ambil data dari PHP
+    const bidangLabels = {!! json_encode(collect($bidangAverages)->pluck('label')) !!};
+    const bidangValues = {!! json_encode(collect($bidangAverages)->pluck('value')) !!};
+    const predikatData = {!! json_encode(array_values($predikats)) !!};
+    // Debugging (Cek di Console Browser)
+    console.log("Labels Bidang:", bidangLabels);
+    console.log("Data Bidang:", bidangValues);
 
-    // Donut Chart dengan warna biru
-    new Chart(document.getElementById('donutChart'), {
-        type: 'doughnut',
-        data: {
-            labels: ['Baik', 'Sangat Baik', 'Buruk', 'Sangat Buruk'],
-            datasets: [{
-                data: [38, 16, 9, 30],
-                backgroundColor: ['#60a5fa', '#93c5fd', '#bfdbfe', '#dbeafe'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            cutout: '70%',
-            plugins: { 
-                legend: { display: false } 
+    // Common Options
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false, // Wajib agar mengikuti tinggi div parent
+        plugins: { legend: { display: false } }
+    };
+
+    // Render Bar Chart
+    const barCtx = document.getElementById('barChart');
+    if (document.getElementById('barChart')) {
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: bidangLabels,
+                datasets: [{
+                    data: bidangValues,
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderRadius: 8,
+                    barThickness: 25
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: { 
+                        beginAtZero: true, max: 100, 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#93c5fd' }
+                    },
+                    x: { ticks: { color: '#93c5fd', font: { size: 9 }  } }
+                }
             }
-        }
-    });
+        });
+    }
+
+    // Render Donut Chart
+    const donutCtx = document.getElementById('donutChart');
+    if (donutCtx) {
+        new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode(array_keys($predikats)) !!},
+                datasets: [{
+                    data: predikatData,
+                    backgroundColor: ['#60a5fa', '#93c5fd', '#bfdbfe', 'rgba(255,255,255,0.1)'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '75%'
+            }
+        });
+    }
 </script>
 @endpush
