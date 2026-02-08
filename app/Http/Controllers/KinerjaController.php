@@ -68,7 +68,7 @@ class KinerjaController extends Controller
             abort(403, 'Anda tidak memiliki akses ke data pegawai ini.');
         }
 
-        $triwulanAktif = \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1;
+        $triwulanAktif = session('periode_pilihan', \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
 
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
@@ -147,7 +147,7 @@ class KinerjaController extends Controller
         ]);
 
         // 2. Ambil Global Settings (Konsisten & Fleksibel)
-        $triwulanAktif = DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1;
+        $triwulanAktif = session('periode_pilihan', \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
         $tahunAktif    = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         DB::beginTransaction();
@@ -170,6 +170,22 @@ class KinerjaController extends Controller
                     'catatan_atasan' => $request->catatan_atasan
                 ]
             );
+
+            // 2. LOGIKA NOTIFIKASI: Update status berkas di level Tupoksi
+            // Cari tahu kriteria ini milik tupoksi mana
+            $kriteria = KriteriaTupoksi::find($request->kriteria_id);
+            
+            // Cari berkas yang diupload staff untuk tupoksi ini pada periode aktif
+            $berkas = BerkasKinerja::where('user_id', $request->pegawai_id)
+                        ->where('tupoksi_id', $kriteria->tupoksi_id)
+                        ->where('triwulan', $triwulanAktif)
+                        ->where('tahun', $tahunAktif)
+                        ->first();
+
+            // Jika ada berkasnya, ubah status menjadi 'sudah' agar hilang dari notifikasi bell
+            if ($berkas) {
+                $berkas->update(['status_penilaian' => 'sudah']);
+            }
 
             // 3. Catat Log Aktivitas (Sesuai Kriteria Dokumen Hal 4)
             ActivityLog::create([
@@ -449,7 +465,7 @@ class KinerjaController extends Controller
     public function indexUpload()
     {
         $user = auth()->user();
-        $triwulanAktif = DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1;
+        $triwulanAktif = session('periode_pilihan', \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         // Mengambil Tupoksi beserta Kriteria dan Berkas yang terikat pada Tupoksi tersebut

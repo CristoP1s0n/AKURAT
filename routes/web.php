@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UnitKerjaController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -28,6 +29,8 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // --- FITUR KINERJA (STAFF / SEMUA PEGAWAI) ---
     Route::prefix('kinerja')->name('kinerja.')->group(function () {
@@ -53,6 +56,11 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
     // --- FITUR KHUSUS KEPALA DINAS (SUPER ADMIN) ---
     Route::middleware(['role:kadis'])->group(function () {
 
+        // Pengaturan Periode Aktif
+        Route::controller(SettingController::class)->group(function () {
+            Route::post('/set-periode', 'setPeriode')->name('periode.set');
+            Route::get('/reset-periode', 'resetPeriode')->name('periode.reset');
+        });
         // --- DATA PEGAWAI
         Route::get('/pegawai', [UserController::class, 'index'])->name('pegawai.index');
         Route::post('/pegawai/store', [UserController::class, 'store'])->name('pegawai.store');

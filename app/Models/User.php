@@ -13,7 +13,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'nip', 'nama', 'email', 'password', 'role', 
-        'parent_id', 'jabatan', 'golongan', 'unit_id', 'is_active'
+        'parent_id', 'jabatan', 'golongan', 'unit_id', 'is_active', 'avatar'
     ];
 
     // SANGAT PENTING: Agar password tidak muncul saat data dipanggil

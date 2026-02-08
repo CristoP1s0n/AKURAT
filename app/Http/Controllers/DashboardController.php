@@ -22,7 +22,7 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $triwulan = DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1;
+        $triwulan = session('periode_pilihan', \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
         $tahun = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         // 1. Ambil Semua Unit & Pegawai

@@ -6,13 +6,16 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Menampilkan form edit profil.
      */
     public function edit(Request $request): View
     {
@@ -22,39 +25,58 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Update Informasi Profil (Nama & Foto).
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        // Validasi: Email dibuat opsional (nullable) agar tidak memaksa user
+        $request->validate([
+            'nama'   => 'required|string|max:255',
+            'email'  => 'nullable|email|max:255|unique:users,email,'.$user->id,
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        // Handle Upload Avatar
+        if ($request->hasFile('avatar')) {
+            // Hapus foto lama jika ada di storage
+            if ($user->avatar) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            // Simpan foto baru
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $path;
         }
 
-        $request->user()->save();
+        $user->nama = $request->nama;
+        $user->email = $request->email;
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        $user->save();
+
+        return Redirect::route('profile.edit')->with('success', 'Profil berhasil diperbarui.');
     }
 
     /**
-     * Delete the user's account.
+     * Update Password.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function updatePassword(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        $user = $request->user();
+        $request->user()->update([
+            'password' => Hash::make($request->password),
+        ]);
 
-        Auth::logout();
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
+        return back()->with('success', 'Password berhasil diubah.');
     }
+
+    /* 
+       Catatan: Fungsi destroy (Hapus Akun) dihilangkan 
+       agar pegawai tidak bisa menghapus akun dinasnya sendiri.
+    */
 }

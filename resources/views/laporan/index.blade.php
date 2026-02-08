@@ -45,7 +45,7 @@
                         
                         {{-- Tampilkan skor tiap triwulan menggunakan Service --}}
                         @for($i=1; $i<=4; $i++)
-                            <td class="px-4 py-4 text-center text-xs text-white score-print">
+                            <td class="px-4 py-4 text-center text-xs {{ $triwulanAktif == $i ? 'bg-blue-500/20 font-bold text-white' : 'text-white/60' }} score-print">
                                 {{ number_format(app(\App\Services\PerformanceService::class)->hitungNilaiTriwulan($p, $i, $tahun), 1) }}
                             </td>
                         @endfor

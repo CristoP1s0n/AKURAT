@@ -9,10 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
 {
-    // 1. Definisikan properti
     protected $perfService;
 
-    // 2. Inisialisasi melalui Constructor Injection
     public function __construct(PerformanceService $perfService)
     {
         $this->perfService = $perfService;
@@ -21,25 +19,28 @@ class LaporanController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $tahun = DB::table('settings')->where('key', 'tahun_aktif')->value('value');
+        $tahun = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
+
+        // AMBIL PERIODE DARI SESSION (Agar sinkron dengan Header)
+        $triwulanAktif = session('periode_pilihan', DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
         
+        // Logika Otoritas Akses
         if ($user->role == 'kadis') {
-            // Kadis melihat semua pegawai
-            $dataLaporan = \App\Models\User::where('role', '!=', 'kadis')->get();
+            $dataLaporan = User::where('role', '!=', 'kadis')->with('unitKerja')->get();
         } elseif (in_array($user->role, ['kabag', 'kasie'])) {
-            // Atasan melihat bawahannya
-            $dataLaporan = \App\Models\User::where('parent_id', $user->id)->get();
+            $dataLaporan = User::where('parent_id', $user->id)->with('unitKerja')->get();
         } else {
-            // Staff hanya melihat dirinya sendiri
-            $dataLaporan = \App\Models\User::where('id', $user->id)->get();
+            $dataLaporan = User::where('id', $user->id)->with('unitKerja')->get();
         }
 
-        // Gunakan PerformanceService untuk setiap user
+        // Kalkulasi skor tahunan untuk setiap pegawai
         foreach ($dataLaporan as $u) {
+            // Service ini akan menghitung rata-rata T1, T2, T3, T4
             $u->skor_tahunan = $this->perfService->hitungNilaiTahunan($u, $tahun);
             $u->predikat_tahunan = $this->perfService->getPredikat($u->skor_tahunan);
         }
 
-        return view('laporan.index', compact('dataLaporan', 'tahun'));
+        // Kirim triwulanAktif ke view agar Header tidak error dan bisa digunakan untuk styling
+        return view('laporan.index', compact('dataLaporan', 'tahun', 'triwulanAktif'));
     }
 }
