@@ -259,7 +259,7 @@
                     <!-- DROP-DOWN PEMILIHAN PERIODE -->
                     <div class="relative">
                         @php
-                            $defaultTriwulan = DB::table('settings')->where('key', 'triwulan_aktif')->value('value');
+                            $defaultTriwulan = ceil(date('n') / 3);
                             $currentPeriode = session('periode_pilihan', $defaultTriwulan);
                         @endphp
                         

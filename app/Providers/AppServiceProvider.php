@@ -32,7 +32,7 @@ class AppServiceProvider extends  ServiceProvider
                 $user = auth()->user();
                 
                 // Ambil Triwulan dari Session Pilihan, jika tidak ada pakai default database
-                $triwulan = session('periode_pilihan', DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
+                $triwulan = session('periode_pilihan', ceil(date('n') / 3));
                 $tahun = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
                 // 1. Inisialisasi Query (Ambil berkas yang belum dinilai)

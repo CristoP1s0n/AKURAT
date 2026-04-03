@@ -97,7 +97,7 @@
                 <tr class="hover:bg-white/10 transition">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($p->nama) }}&background=0ea5e9&color=fff" class="w-10 h-10 rounded-full mr-3 border-2 border-blue-300/50 shadow-lg">
+                            <img src="{{ $p->avatar ? asset('storage/' . $p->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($p->nama).'&background=0ea5e9&color=fff' }}" class="w-10 h-10 rounded-full mr-3 border-2 border-blue-300/50 shadow-lg object-cover">
                             <span class="font-medium text-white">{{ $p->nama }}</span>
                         </div>
                     </td>

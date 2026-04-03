@@ -31,7 +31,7 @@
                 <tr class="hover:bg-white/10 transition">
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($p->nama) }}&background=3b82f6&color=fff" class="w-10 h-10 rounded-full border-2 border-blue-300/50">
+                            <img src="{{ $p->avatar ? asset('storage/' . $p->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($p->nama).'&background=3b82f6&color=fff' }}" class="w-10 h-10 rounded-full border-2 border-blue-300/50 object-cover">
                             <div>
                                 <div class="font-bold text-white">{{ $p->nama }}</div>
                                 <div class="text-[10px] text-blue-300">NIP. {{ $p->nip }}</div>
@@ -61,13 +61,17 @@
                             }
                             $persentase = $totalKriteria > 0 ? round(($sudahDinilai / $totalKriteria) * 100) : 0;
                             $semuaDinilai = ($totalKriteria > 0 && $sudahDinilai === $totalKriteria);
+                            
+                            // Determine colors
+                            $barColor = $semuaDinilai ? 'bg-green-400' : ($totalKriteria === 0 ? 'bg-white/30' : 'bg-yellow-400');
+                            $textColor = $semuaDinilai ? 'text-green-300' : ($totalKriteria === 0 ? 'text-white/50' : 'text-yellow-300');
                         @endphp
                         
                         <div class="w-full bg-white/10 rounded-full h-1.5 mb-1">
-                            <div class="{{ $semuaDinilai ? 'bg-green-400' : 'bg-blue-400' }} h-1.5 rounded-full" style="width: {{ $persentase }}%"></div>
+                            <div class="{{ $barColor }} h-1.5 rounded-full" style="width: {{ $persentase }}%"></div>
                         </div>
-                        <span class="text-[9px] {{ $semuaDinilai ? 'text-green-300' : 'text-blue-200' }} font-bold uppercase">
-                            {{ $semuaDinilai ? 'SUDAH DINILAI' : ($totalKriteria === 0 ? 'Belum Ada Kriteria' : 'Menunggu Penilaian') }}
+                        <span class="text-[9px] {{ $textColor }} font-bold uppercase">
+                            {{ $semuaDinilai ? 'SUDAH DINILAI' : ($totalKriteria === 0 ? 'Belum Ada Kriteria' : 'Menunggu Penilaian (' . $persentase . '%)') }}
                         </span>
                     </td>
                     <td class="px-6 py-4 text-right">

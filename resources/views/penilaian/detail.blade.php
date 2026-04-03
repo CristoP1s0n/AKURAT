@@ -7,7 +7,7 @@
         <!-- Info Pegawai (Kiri) -->
         <div class="flex items-center gap-4 min-w-0 flex-1">
             <div class="w-16 h-16 glass-strong p-1 shrink-0">
-                <img src="https://ui-avatars.com/api/?name={{ urlencode($pegawai->nama) }}&background=3b82f6&color=fff" class="w-full h-full rounded-xl">
+                <img src="{{ $pegawai->avatar ? asset('storage/' . $pegawai->avatar) : 'https://ui-avatars.com/api/?name='.urlencode($pegawai->nama).'&background=3b82f6&color=fff' }}" class="w-full h-full rounded-xl object-cover">
             </div>
             <div class="min-w-0 flex-1">
                 <h1 class="text-2xl font-bold tracking-tight text-white truncate lg:whitespace-normal">{{ $pegawai->nama }}</h1>

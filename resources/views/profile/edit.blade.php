@@ -24,7 +24,7 @@
                                 @if(auth()->user()->avatar)
                                     <img id="profile-preview" src="{{ asset('storage/' . auth()->user()->avatar) }}" class="w-full h-full object-cover rounded-xl shadow-2xl">
                                 @else
-                                    <img id="profile-preview" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->nama) }}&background=3b82f6&color=fff" class="w-full h-full rounded-xl">
+                                    <img id="profile-preview" src="{{ auth()->user()->avatar ? asset('storage/' . auth()->user()->avatar) : 'https://ui-avatars.com/api/?name='.urlencode(auth()->user()->nama).'&background=3b82f6&color=fff' }}" class="w-full h-full rounded-xl object-cover">
                                 @endif
                                 <label for="avatar" class="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-xl">
                                     <i class="fas fa-camera text-white"></i>

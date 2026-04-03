@@ -22,15 +22,19 @@ class LaporanController extends Controller
         $tahun = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         // AMBIL PERIODE DARI SESSION (Agar sinkron dengan Header)
-        $triwulanAktif = session('periode_pilihan', DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
+        $triwulanAktif = session('periode_pilihan', ceil(date('n') / 3));
         
         // Logika Otoritas Akses
         if ($user->role == 'kadis') {
             $dataLaporan = User::where('role', '!=', 'kadis')->with('unitKerja')->get();
-        } elseif (in_array($user->role, ['kabag', 'kasie'])) {
-            $dataLaporan = User::where('parent_id', $user->id)->with('unitKerja')->get();
         } else {
-            $dataLaporan = User::where('id', $user->id)->with('unitKerja')->get();
+            // Kabag, Kasie, dan Staff selalu melihat diri mereka sendiri.
+            // Tambahkan juga bawahan langsung jika mereka memilikinya.
+            $dataLaporan = User::where('id', $user->id)
+                               ->orWhere('parent_id', $user->id)
+                               ->with('unitKerja')
+                               ->orderBy('role', 'asc') // Urutkan supaya atasan selalu muncul pertama
+                               ->get();
         }
 
         // Kalkulasi skor tahunan untuk setiap pegawai

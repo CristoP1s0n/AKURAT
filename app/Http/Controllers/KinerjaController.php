@@ -49,7 +49,7 @@ class KinerjaController extends Controller
         }
 
         // 3. Eksekusi dengan Eager Loading
-        $triwulanAktif = session('periode_pilihan', \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
+        $triwulanAktif = session('periode_pilihan', ceil(date('n') / 3));
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         $pegawai = $pegawaiQuery->with([
@@ -83,7 +83,7 @@ class KinerjaController extends Controller
             abort(403, 'Anda tidak memiliki akses ke data pegawai ini.');
         }
 
-        $triwulanAktif = session('periode_pilihan', \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
+        $triwulanAktif = session('periode_pilihan', ceil(date('n') / 3));
 
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
@@ -162,7 +162,7 @@ class KinerjaController extends Controller
         ]);
 
         // 2. Ambil Global Settings (Konsisten & Fleksibel)
-        $triwulanAktif = session('periode_pilihan', \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
+        $triwulanAktif = session('periode_pilihan', ceil(date('n') / 3));
         $tahunAktif    = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         DB::beginTransaction();
@@ -480,7 +480,7 @@ class KinerjaController extends Controller
     public function indexUpload()
     {
         $user = auth()->user();
-        $triwulanAktif = session('periode_pilihan', \DB::table('settings')->where('key', 'triwulan_aktif')->value('value') ?? 1);
+        $triwulanAktif = session('periode_pilihan', ceil(date('n') / 3));
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         // Mengambil Tupoksi beserta Kriteria dan Berkas yang terikat pada Tupoksi tersebut
