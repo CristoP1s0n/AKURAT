@@ -49,8 +49,8 @@ class AppServiceProvider extends  ServiceProvider
                 }
 
                 // 3. Ambil data untuk dikirim ke Header
+                $totalNotif = $query->count(); // Calculate count before taking a mutated limit subset
                 $notifikasiBerkas = $query->latest()->take(5)->get();
-                $totalNotif = $query->count();
 
                 // 4. Bagikan variabel ke semua view yang menggunakan layouts.app
                 $view->with(compact('notifikasiBerkas', 'totalNotif'));

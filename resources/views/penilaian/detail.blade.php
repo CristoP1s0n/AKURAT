@@ -113,10 +113,8 @@
 
                                     <div class="flex bg-black/40 p-1 rounded-full border border-white/10">
                                         @php 
-                                            $nilaiExist = \App\Models\Penilaian::where('kriteria_id', $kriteria->id)
-                                                            ->where('user_id', $pegawai->id)
-                                                            ->where('triwulan', $triwulanAktif)
-                                                            ->first();
+                                            // Uses eager loaded relation to prevent severe N+1 SQL issues
+                                            $nilaiExist = $kriteria->penilaian->first();
                                             $currentSkor = $nilaiExist->skor ?? -1;
                                         @endphp
                                         @for($i=0; $i<=3; $i++)

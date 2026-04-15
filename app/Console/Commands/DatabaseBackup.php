@@ -29,6 +29,7 @@ class DatabaseBackup extends Command
         
         // Pastikan path pg_dump sudah ada di environment variable komputer Anda
         // Jika di Windows/XAMPP biasanya: C:\PostgreSQL\bin\pg_dump.exe
+        putenv("PGPASSWORD=" . config('database.connections.pgsql.password'));
         $command = sprintf(
             'pg_dump -h %s -U %s %s > %s',
             config('database.connections.pgsql.host'),

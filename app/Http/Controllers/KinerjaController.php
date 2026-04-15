@@ -87,11 +87,13 @@ class KinerjaController extends Controller
 
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
-        $pegawai->load(['tupoksis' => function($q) use ($tahunAktif) {
-        $q->where('tahun', $tahunAktif);
-        }, 'tupoksis.berkasKinerja' => function($q) use ($id, $triwulanAktif) {
-        $q->where('user_id', $id)->where('triwulan', $triwulanAktif);
-        }, 'tupoksis.kriteria']);
+        $pegawai->load([
+            'tupoksis' => function($q) use ($tahunAktif) { $q->where('tahun', $tahunAktif); },
+            'tupoksis.berkasKinerja' => function($q) use ($id, $triwulanAktif) { $q->where('user_id', $id)->where('triwulan', $triwulanAktif); },
+            'tupoksis.kriteria.penilaian' => function($q) use ($id, $triwulanAktif, $tahunAktif) {
+                $q->where('user_id', $id)->where('triwulan', $triwulanAktif)->where('tahun', $tahunAktif);
+            }
+        ]);
 
         //Performance service (real time skor)
         $skorAngka = $this->perfService->hitungNilaiTriwulan($pegawai, $triwulanAktif, $tahunAktif);
@@ -248,14 +250,31 @@ class KinerjaController extends Controller
             $file = $request->file('file_bukti');
             $filename = time() . '_' . auth()->user()->nip . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs($folder, $filename, 'public');
-            $berkas = BerkasKinerja::create([
-                'user_id' => auth()->id(),
-                'tupoksi_id' => $request->tupoksi_id,
-                'triwulan' => $request->triwulan,
-                'tahun' => $tahun,
-                'file_path' => $path,
-                'status_penilaian' => 'belum'
-            ]);
+            // Cegah penumpukan baris database; Jika berkas sudah ada, timpa file fisik lama dan update path-nya
+            $berkas = BerkasKinerja::where('user_id', auth()->id())
+                ->where('tupoksi_id', $request->tupoksi_id)
+                ->where('triwulan', $request->triwulan)
+                ->where('tahun', $tahun)
+                ->first();
+
+            if ($berkas) {
+                if (Storage::disk('public')->exists($berkas->file_path)) {
+                    Storage::disk('public')->delete($berkas->file_path);
+                }
+                $berkas->update([
+                    'file_path' => $path,
+                    'status_penilaian' => 'belum'
+                ]);
+            } else {
+                $berkas = BerkasKinerja::create([
+                    'user_id' => auth()->id(),
+                    'tupoksi_id' => $request->tupoksi_id,
+                    'triwulan' => $request->triwulan,
+                    'tahun' => $tahun,
+                    'file_path' => $path,
+                    'status_penilaian' => 'belum'
+                ]);
+            }
 
             // --- TAMBAHKAN LOG ---
             ActivityLog::create([
@@ -303,10 +322,14 @@ class KinerjaController extends Controller
             }
         }
         
-        // 3. Cek Locking System
-        $isLocked = DB::table('settings')->where('key', 'lock_t'.$berkas->triwulan)->where('value', '1')->exists();
-        if ($isLocked) {
-            return back()->with('error', 'Periode triwulan ini sudah dikunci, Anda tidak bisa menghapus berkas.');
+        // 3. Cek Locking System & Deadline Otoritatif
+        $triwulan = $berkas->triwulan;
+        $isLocked = DB::table('settings')->where('key', 'lock_t'.$triwulan)->where('value', '1')->exists();
+        $deadline = DB::table('settings')->where('key', 't'.$triwulan.'_deadline')->value('value');
+        $isPastDeadline = $deadline ? now()->gt(\Carbon\Carbon::parse($deadline)) : false;
+
+        if ($isLocked || $isPastDeadline) {
+            return back()->with('error', 'Periode triwulan ini sudah dikunci atau melewati batas waktu deadline.');
         }
 
         DB::beginTransaction();

@@ -32,7 +32,7 @@ class DashboardController extends Controller
         // 2. Identifikasi Unit "Level 1" (Sekretariat & Bidang-bidang)
         // Yaitu unit yang parent_id-nya menunjuk ke Root (Dinas Kesehatan)
         $rootUnit = $allUnits->whereNull('parent_id')->first();
-        $topLevelUnits = $allUnits->where('parent_id', $rootUnit->id ?? 0);
+        $topLevelUnits = $allUnits->where('parent_id', $rootUnit?->id ?? 0);
 
         // 3. Statistik Dasar
         $totalPegawai = $semuaPegawai->count();
@@ -54,7 +54,7 @@ class DashboardController extends Controller
 
             if ($currentUnit) {
                 // Jika unit dia adalah anak langsung Dinas, maka itu Bidangnya
-                if ($currentUnit->parent_id == ($rootUnit->id ?? 0)) {
+                if ($currentUnit->parent_id == ($rootUnit?->id ?? 0)) {
                     $bidangId = $currentUnit->id;
                 } else {
                     // Jika dia di Seksi, ambil parent dari Seksi tersebut (yaitu Bidang)

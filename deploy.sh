@@ -6,8 +6,8 @@ docker-compose up -d --build
 echo "Menunggu database siap..."
 sleep 10
 
-# Migrasi dan Seeding data awal
-docker exec akurat_app php artisan migrate:fresh --seed --force
+# Migrasi struktur database terbaru
+docker exec akurat_app php artisan migrate --force
 docker exec akurat_app php artisan storage:link
 docker exec akurat_app php artisan config:cache
 
