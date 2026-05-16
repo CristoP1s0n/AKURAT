@@ -9,7 +9,7 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <div id="breadcrumb" class="glass-strong px-4 py-2 rounded-xl hidden">
+            <div id="breadcrumb" class="glass-card px-4 py-2 rounded-xl hidden">
                 <div class="flex items-center gap-2 text-sm">
                     <button onclick="resetView()" class="text-blue-300 hover:text-white transition font-black uppercase text-[10px]">
                         <i class="fas fa-home mr-1"></i> Utama
@@ -28,7 +28,7 @@
     </div>
 
     <!-- BOX WRAPPER: overflow-x scroll so wide charts stay readable instead of zooming out -->
-    <div class="glass-strong relative w-full" style="max-width: calc(100vw - 300px);">
+    <div class="glass-card relative w-full overflow-hidden" style="max-width: calc(100vw - 300px);">
 
         <!-- Scroll hint badge -->
         <div id="scroll-hint" class="hidden absolute top-3 right-3 z-10 bg-blue-600/80 text-white text-[9px] font-bold px-3 py-1 rounded-full backdrop-blur-sm border border-blue-400/40 pointer-events-none">
@@ -250,7 +250,7 @@
         chart.draw(data, {
             'allowHtml': true,
             'allowCollapse': false,
-            'size': 'large',
+            'size': 'medium',
             'nodeClass': 'google-node-reset'
         });
     }
@@ -265,34 +265,34 @@
 
         const editBtn = isKadis && isUnit
             ? `<button onclick="event.stopPropagation(); openModalEditUnit(${node.realId}, '${node.name.replace(/'/g, "\\'")}', '${node.level}', ${node.realParentId ?? 'null'})"
-                class="edit-unit-btn absolute top-2 right-2 w-7 h-7 bg-white/10 hover:bg-blue-500/60 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/20"
+                class="edit-unit-btn absolute top-1.5 right-1.5 w-6 h-6 bg-white/10 hover:bg-blue-500/60 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/20"
                 title="Edit unit kerja ini">
-                <i class="fas fa-pen text-[10px] text-white"></i>
+                <i class="fas fa-pen text-[8px] text-white"></i>
               </button>`
             : '';
 
         const deleteBtn = isKadis && isUnit
             ? `<button onclick="event.stopPropagation(); openModalHapusUnit(${node.realId}, '${node.name.replace(/'/g, "\\'")}')"
-                class="delete-unit-btn absolute top-2 left-2 w-7 h-7 bg-white/10 hover:bg-red-500/70 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/20"
+                class="delete-unit-btn absolute top-1.5 left-1.5 w-6 h-6 bg-white/10 hover:bg-red-500/70 rounded-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-lg border border-white/20"
                 title="Hapus unit kerja ini">
-                <i class="fas fa-trash text-[10px] text-white"></i>
+                <i class="fas fa-trash text-[8px] text-white"></i>
               </button>`
             : '';
 
         if (!isUnit) {
             return `<div class="node-box node-staff animate-fade-in">
-                        <div class="text-[11px] font-bold text-white leading-tight mb-1">${node.name}</div>
-                        <div class="text-[9px] text-blue-200 opacity-80 uppercase">${node.jabatan}</div>
+                        <div class="text-[9px] font-bold text-white leading-tight">${node.name}</div>
+                        <div class="text-[7px] text-blue-200 opacity-70 mt-1 uppercase">${node.jabatan}</div>
                     </div>`;
         }
 
         return `<div class="node-box node-${node.level} ${canClick ? 'cursor-pointer' : ''} relative group" ${clickAttr}>
                     ${editBtn}
                     ${deleteBtn}
-                    <div class="text-[10px] text-blue-300 font-bold uppercase tracking-tighter opacity-80 mb-1.5">${node.name}</div>
-                    <div class="text-[13px] font-black text-white leading-tight mb-0.5">${node.managerName}</div>
-                    <div class="text-[9px] text-blue-100 mt-1 opacity-90 uppercase">${node.managerJabatan}</div>
-                    ${canClick ? '<div class="mt-3 pt-1.5 border-t border-white/10 text-[9px] text-blue-300 font-bold uppercase tracking-widest"><i class="fas fa-search-plus mr-1"></i> Expand</div>' : ''}
+                    <div class="text-[8px] text-blue-300 font-bold uppercase tracking-tighter opacity-70 mb-1">${node.name}</div>
+                    <div class="text-[11px] font-black text-white leading-tight">${node.managerName}</div>
+                    <div class="text-[7px] text-blue-100 mt-1 opacity-80 uppercase">${node.managerJabatan}</div>
+                    ${canClick ? '<div class="mt-2 pt-1 border-t border-white/10 text-[7px] text-blue-300 font-bold uppercase tracking-widest"><i class="fas fa-search-plus mr-1"></i> Expand</div>' : ''}
                 </div>`;
     }
 
@@ -310,7 +310,7 @@
             const chartWidth = chartDiv.scrollWidth;
 
             if (chartWidth > areaWidth) {
-                const scale = Math.max(areaWidth / chartWidth, 0.85);
+                const scale = Math.max(areaWidth / chartWidth, 0.65);
                 if (scale < 1) {
                     chartDiv.style.transform = `scale(${scale})`;
                     // Adjust the container height to account for the scale shrink
@@ -383,17 +383,17 @@
 
 <style>
     /* Reset Mutlak Google Charts */
-    .google-node-reset { border: none !important; background: transparent !important; padding: 6px !important; }
-    .google-visualization-orgchart-table { border-collapse: separate !important; border-spacing: 28px 22px !important; width: auto !important; }
+    .google-node-reset { border: none !important; background: transparent !important; padding: 4px !important; }
+    .google-visualization-orgchart-table { border-collapse: separate !important; border-spacing: 20px 15px !important; width: auto !important; }
 
     /* Kotak Node Glassmorphism */
     .node-box {
         backdrop-filter: blur(15px);
         border: 1.5px solid rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        padding: 18px 20px;
-        min-width: 210px;
-        max-width: 210px;
+        border-radius: 14px;
+        padding: 15px;
+        min-width: 170px;
+        max-width: 170px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         text-align: center;
@@ -426,9 +426,6 @@
         to   { opacity: 1; transform: scale(1); }
     }
     .animate-scale-up { animation: scale-up 0.2s ease-out; }
-
-    /* Override glass-strong overflow so the inner chart-area can scroll */
-    .glass-strong { overflow: visible !important; }
 
     /* Custom scrollbar for the chart area */
     #chart-area::-webkit-scrollbar {
