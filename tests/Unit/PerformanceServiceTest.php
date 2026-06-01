@@ -9,6 +9,7 @@ use App\Models\UnitKerja;
 use App\Models\User;
 use App\Services\PerformanceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -41,7 +42,7 @@ class PerformanceServiceTest extends TestCase
         ]);
 
         // Seed threshold nilai dari SettingSeeder (nilai produksi)
-        \DB::table('settings')->insert([
+        DB::table('settings')->insert([
             ['key' => 'skor_sangat_baik', 'value' => '90'],
             ['key' => 'skor_baik',        'value' => '76'],
             ['key' => 'skor_cukup',       'value' => '60'],

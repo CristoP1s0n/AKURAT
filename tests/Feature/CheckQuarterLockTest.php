@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\UnitKerja;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
@@ -182,8 +183,8 @@ class CheckQuarterLockTest extends TestCase
      */
     private function seedSettings(string $lockT1, string $deadlineT1): void
     {
-        \DB::table('settings')->insert([
-            ['key' => 'lock_t1',    'value' => $lockT1],
+        DB::table('settings')->insert([
+            ['key' => 'lock_t1', 'value' => $lockT1],
             ['key' => 't1_deadline', 'value' => $deadlineT1],
         ]);
     }
