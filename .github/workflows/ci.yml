@@ -20,9 +20,16 @@ jobs:
   lint:
     name: 🎨 Lint (Laravel Pint)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Diperlukan agar job bisa commit hasil auto-fix
     steps:
       - name: Checkout kode sumber
         uses: actions/checkout@v4
+        with:
+          # Fetch full history agar git push bisa berjalan
+          fetch-depth: 0
+          # Gunakan token dengan write permission
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup PHP 8.4
         uses: shivammathur/setup-php@v2
@@ -41,8 +48,22 @@ jobs:
       - name: Install dependensi Composer
         run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
-      - name: Jalankan Laravel Pint (PSR-12 Linting)
-        run: vendor/bin/pint --test
+      - name: Jalankan Laravel Pint (auto-fix PSR-12)
+        run: vendor/bin/pint
+
+      - name: Commit hasil auto-fix Pint (jika ada perubahan)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            echo "✏️  Pint menemukan dan memperbaiki style issues:"
+            git diff --name-only
+            git add -A
+            git commit -m "style: auto-fix PSR-12 via Laravel Pint [skip ci]"
+            git push
+          else
+            echo "✅ Tidak ada style issues — kode sudah bersih!"
+          fi
 
   # ─────────────────────────────────────────────────────────────
   # JOB 2: MIGRATION TEST — Memverifikasi urutan & kompatibilitas
@@ -123,7 +144,7 @@ jobs:
         run: php artisan key:generate
 
       - name: Jalankan seluruh test suite (PHPUnit 11)
-        run: php artisan test --parallel --stop-on-failure
+        run: php artisan test --stop-on-failure
         env:
           APP_ENV: testing
           DB_CONNECTION: sqlite
