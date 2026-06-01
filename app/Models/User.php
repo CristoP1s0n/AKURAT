@@ -12,8 +12,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'nip', 'nama', 'email', 'password', 'role', 
-        'parent_id', 'jabatan', 'golongan', 'unit_id', 'is_active', 'avatar'
+        'nip', 'nama', 'email', 'password', 'role',
+        'parent_id', 'jabatan', 'golongan', 'unit_id', 'is_active', 'avatar',
     ];
 
     // SANGAT PENTING: Agar password tidak muncul saat data dipanggil
@@ -30,24 +30,29 @@ class User extends Authenticatable
 
     // --- RELASI E-KINERJA ---
 
-    public function subordinates() {
+    public function subordinates()
+    {
         return $this->hasMany(User::class, 'parent_id');
     }
 
-    public function superior() {
+    public function superior()
+    {
         return $this->belongsTo(User::class, 'parent_id');
     }
 
-    public function unitKerja() {
+    public function unitKerja()
+    {
         return $this->belongsTo(UnitKerja::class, 'unit_id');
     }
 
-    public function tupoksis() {
+    public function tupoksis()
+    {
         return $this->hasMany(Tupoksi::class);
     }
 
     // Tambahkan ini di dalam class User di file User.php
-    public function berkasKinerja() {
+    public function berkasKinerja()
+    {
         return $this->hasMany(BerkasKinerja::class);
     }
 }

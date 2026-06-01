@@ -13,9 +13,9 @@ class ActiveUser
         // Jika user sudah login...
         if (auth()->check()) {
             // ...tapi status is_active-nya false (0)
-            if (!auth()->user()->is_active) {
+            if (! auth()->user()->is_active) {
                 auth()->logout();
-                
+
                 // Hapus session agar benar-benar bersih
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();

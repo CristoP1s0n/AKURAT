@@ -24,7 +24,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        
+
         $request->authenticate();
 
         $request->session()->regenerate();
@@ -33,11 +33,11 @@ class AuthenticatedSessionController extends Controller
             'user_id' => auth()->id(),
             'action' => 'LOGIN',
             'description' => 'User berhasil login ke sistem',
-            'ip_address' => $request->ip()
+            'ip_address' => $request->ip(),
         ]);
 
         return redirect()->intended(route('dashboard', absolute: false));
-        
+
     }
 
     /**

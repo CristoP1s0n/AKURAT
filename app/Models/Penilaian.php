@@ -10,12 +10,12 @@ class Penilaian extends Model
 
     protected $fillable = [
         'kriteria_id',
-        'user_id',   
-        'triwulan', 
-        'tahun',  
+        'user_id',
+        'triwulan',
+        'tahun',
         'penilai_id',
         'skor',
-        'catatan_atasan'
+        'catatan_atasan',
     ];
 
     public function kriteria()

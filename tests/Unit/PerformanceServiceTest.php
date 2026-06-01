@@ -25,14 +25,16 @@ class PerformanceServiceTest extends TestCase
     use RefreshDatabase;
 
     private PerformanceService $service;
+
     private User $staff;
+
     private int $tahun = 2026;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->service = new PerformanceService();
+        $this->service = new PerformanceService;
 
         // Wajib: UserFactory default menggunakan unit_id = 1
         UnitKerja::create([
@@ -220,7 +222,7 @@ class PerformanceServiceTest extends TestCase
             'tahun' => $this->tahun,
         ]);
 
-        $kolom = 't' . $triwulan;
+        $kolom = 't'.$triwulan;
 
         for ($i = 1; $i <= $jumlah; $i++) {
             $kriteria = KriteriaTupoksi::create([

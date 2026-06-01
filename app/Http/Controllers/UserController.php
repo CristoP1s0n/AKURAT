@@ -2,29 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\UnitKerja;
 use App\Models\ActivityLog;
+use App\Models\UnitKerja;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     public function index(Request $request)
     {
-        if (auth()->user()->role !== 'kadis') { abort(403); }
+        if (auth()->user()->role !== 'kadis') {
+            abort(403);
+        }
 
         // 1. Inisialisasi Query
         $query = User::with('unitKerja');
 
         // 2. Logika Filter Pencarian Nama/NIP
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 // Menggunakan DB::raw LOWER untuk cross-database compatibility
-                $q->whereRaw('LOWER(nama) LIKE ?', ['%' . strtolower($request->search) . '%'])
-                ->orWhere('nip', 'like', '%' . $request->search . '%');
+                $q->whereRaw('LOWER(nama) LIKE ?', ['%'.strtolower($request->search).'%'])
+                    ->orWhere('nip', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -50,10 +52,10 @@ class UserController extends Controller
         }
 
         $pegawai = $query->orderBy('nama', 'asc')->get();
-        
+
         // Ambil data untuk dropdown di modal
         $units = UnitKerja::orderBy('nama_unit', 'asc')->get();
-        
+
         // Ambil calon atasan (semua kecuali staff)
         $atasans = User::whereIn('role', ['kadis', 'kabag', 'kasie'])->orderBy('nama', 'asc')->get();
 
@@ -92,20 +94,24 @@ class UserController extends Controller
                 'subject_table' => 'users',
                 'subject_id' => $user->id,
                 'description' => "Menambahkan pegawai baru: {$user->nama} (NIP: {$user->nip})",
-                'ip_address' => $request->ip()
+                'ip_address' => $request->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Pegawai baru berhasil didaftarkan. Password default adalah NIP.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal menambah pegawai: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal menambah pegawai: '.$e->getMessage());
         }
     }
 
     public function update(Request $request, $id)
     {
-        if (auth()->user()->role !== 'kadis') { abort(403); }
+        if (auth()->user()->role !== 'kadis') {
+            abort(403);
+        }
 
         $user = User::findOrFail($id);
 
@@ -142,21 +148,25 @@ class UserController extends Controller
                 'subject_table' => 'users',
                 'subject_id' => $user->id,
                 'description' => "Memperbarui data pegawai: {$user->nama} (NIP: {$user->nip})",
-                'ip_address' => $request->ip()
+                'ip_address' => $request->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Data pegawai berhasil diperbarui.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal memperbarui data: '.$e->getMessage());
         }
     }
 
     public function destroy(Request $request, $id)
     {
-        if (auth()->user()->role !== 'kadis') { abort(403); }
+        if (auth()->user()->role !== 'kadis') {
+            abort(403);
+        }
 
         $user = User::findOrFail($id);
 
@@ -172,20 +182,23 @@ class UserController extends Controller
                 'subject_table' => 'users',
                 'subject_id' => $user->id,
                 'description' => "Menghapus data pegawai: {$user->nama} (NIP: {$user->nip})",
-                'ip_address' => $request->ip()
+                'ip_address' => $request->ip(),
             ]);
 
             $user->delete();
 
             DB::commit();
+
             return back()->with('success', 'Data pegawai berhasil dihapus.');
 
         } catch (\Illuminate\Database\QueryException $e) {
             DB::rollBack();
+
             return back()->with('error', 'Gagal menghapus pegawai karena masih memiliki data terkait (Tupoksi/Bawahan/Penilaian).');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal menghapus data: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal menghapus data: '.$e->getMessage());
         }
     }
 }

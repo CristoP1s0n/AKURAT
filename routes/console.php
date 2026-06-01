@@ -14,5 +14,5 @@ Schedule::command('app:database-backup')->dailyAt('01:00');
 // Contoh: Kunci Triwulan 1 setiap tanggal 5 April
 Schedule::call(function () {
     // Logic untuk mengubah status periode di tabel settings/konfigurasi
-    \Log::info("Sistem secara otomatis mengunci periode Triwulan 1");
+    \Log::info('Sistem secara otomatis mengunci periode Triwulan 1');
 })->yearlyOn(4, 5, '00:00');

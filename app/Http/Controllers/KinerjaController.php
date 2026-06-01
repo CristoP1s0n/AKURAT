@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Tupoksi;
-use App\Models\KriteriaTupoksi;
+use App\Models\ActivityLog;
 use App\Models\BerkasKinerja;
+use App\Models\KriteriaTupoksi;
 use App\Models\Penilaian;
-use App\Models\ActivityLog; // Tambahkan import model log
-use Illuminate\Http\Request;
+use App\Models\Tupoksi;
+use App\Models\User; // Tambahkan import model log
 use App\Services\PerformanceService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;      // Penting untuk DB::table
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class KinerjaController extends Controller
 {
@@ -41,10 +41,10 @@ class KinerjaController extends Controller
 
         // 2. Tambahkan Filter Search Global (Menghidupkan Fitur di Header)
         if ($request->filled('search')) {
-            $pegawaiQuery->where(function($q) use ($request) {
+            $pegawaiQuery->where(function ($q) use ($request) {
                 // Menggunakan DB::raw LOWER untuk cross-database compatibility (termasuk SQLite di test)
-                $q->whereRaw('LOWER(nama) LIKE ?', ['%' . strtolower($request->search) . '%'])
-                ->orWhere('nip', 'like', '%' . $request->search . '%');
+                $q->whereRaw('LOWER(nama) LIKE ?', ['%'.strtolower($request->search).'%'])
+                    ->orWhere('nip', 'like', '%'.$request->search.'%');
             });
         }
 
@@ -54,16 +54,16 @@ class KinerjaController extends Controller
 
         $pegawai = $pegawaiQuery->with([
             'unitKerja',
-            'tupoksis' => function($q) use ($tahunAktif) {
+            'tupoksis' => function ($q) use ($tahunAktif) {
                 $q->where('tahun', $tahunAktif);
             },
-            'tupoksis.kriteria' => function($q) use ($triwulanAktif) {
+            'tupoksis.kriteria' => function ($q) use ($triwulanAktif) {
                 $q->where('t'.$triwulanAktif, true);
             },
-            'tupoksis.kriteria.penilaian' => function($q) use ($triwulanAktif, $tahunAktif) {
+            'tupoksis.kriteria.penilaian' => function ($q) use ($triwulanAktif, $tahunAktif) {
                 $q->where('triwulan', $triwulanAktif)
-                  ->where('tahun', $tahunAktif);
-            }
+                    ->where('tahun', $tahunAktif);
+            },
         ])->orderBy('nama', 'asc')->get();
 
         return view('penilaian.index', compact('pegawai', 'triwulanAktif', 'tahunAktif'));
@@ -75,8 +75,8 @@ class KinerjaController extends Controller
     public function detailPegawai($id)
     {
         $pegawai = User::with([
-            'tupoksis.berkasKinerja', 
-            'tupoksis.kriteria.penilaian'
+            'tupoksis.berkasKinerja',
+            'tupoksis.kriteria.penilaian',
         ])->findOrFail($id);
         // security check
         if (auth()->user()->role !== 'kadis' && $pegawai->parent_id !== auth()->id()) {
@@ -88,14 +88,18 @@ class KinerjaController extends Controller
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         $pegawai->load([
-            'tupoksis' => function($q) use ($tahunAktif) { $q->where('tahun', $tahunAktif); },
-            'tupoksis.berkasKinerja' => function($q) use ($id, $triwulanAktif) { $q->where('user_id', $id)->where('triwulan', $triwulanAktif); },
-            'tupoksis.kriteria.penilaian' => function($q) use ($id, $triwulanAktif, $tahunAktif) {
+            'tupoksis' => function ($q) use ($tahunAktif) {
+                $q->where('tahun', $tahunAktif);
+            },
+            'tupoksis.berkasKinerja' => function ($q) use ($id, $triwulanAktif) {
+                $q->where('user_id', $id)->where('triwulan', $triwulanAktif);
+            },
+            'tupoksis.kriteria.penilaian' => function ($q) use ($id, $triwulanAktif, $tahunAktif) {
                 $q->where('user_id', $id)->where('triwulan', $triwulanAktif)->where('tahun', $tahunAktif);
-            }
+            },
         ]);
 
-        //Performance service (real time skor)
+        // Performance service (real time skor)
         $skorAngka = $this->perfService->hitungNilaiTriwulan($pegawai, $triwulanAktif, $tahunAktif);
 
         $predikat = $this->perfService->getPredikat($skorAngka);
@@ -108,7 +112,6 @@ class KinerjaController extends Controller
      */
     public function storeKriteria(Request $request)
     {
-
 
         // Hanya Kadis yang boleh mengakses method ini
         if (auth()->user()->role !== 'kadis') {
@@ -139,14 +142,16 @@ class KinerjaController extends Controller
                 'subject_table' => 'kriteria_tupoksis',
                 'subject_id' => $kriteria->id,
                 'description' => "Kadis menambahkan kriteria baru: {$request->nama_kriteria}",
-                'ip_address' => $request->ip()
+                'ip_address' => $request->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Kriteria penilaian berhasil ditambahkan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Error storeKriteria: " . $e->getMessage());
+            \Log::error('Error storeKriteria: '.$e->getMessage());
+
             return back()->with('error', 'Gagal menambah kriteria. Terjadi kesalahan sistem.');
         }
     }
@@ -159,13 +164,13 @@ class KinerjaController extends Controller
         // 1. Validasi Input
         $request->validate([
             'kriteria_id' => 'required|exists:kriteria_tupoksi,id',
-            'pegawai_id'  => 'required|exists:users,id',
-            'skor'        => 'required|in:0,1,2,3',
+            'pegawai_id' => 'required|exists:users,id',
+            'skor' => 'required|in:0,1,2,3',
         ]);
 
         // 2. Ambil Global Settings (Konsisten & Fleksibel)
         $triwulanAktif = session('periode_pilihan', ceil(date('n') / 3));
-        $tahunAktif    = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
+        $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         // Cek lock manual untuk mencegah atasan menilai di luar periode (TC-43)
         $isLocked = DB::table('settings')->where('key', 'lock_t'.$triwulanAktif)->where('value', '1')->exists();
@@ -183,27 +188,27 @@ class KinerjaController extends Controller
             $penilaian = Penilaian::updateOrCreate(
                 [
                     'kriteria_id' => $request->kriteria_id,
-                    'user_id'     => $request->pegawai_id,
-                    'triwulan'    => $triwulanAktif,
-                    'tahun'       => $tahunAktif, // Tambahkan tahun agar data antar tahun tidak bertabrakan
+                    'user_id' => $request->pegawai_id,
+                    'triwulan' => $triwulanAktif,
+                    'tahun' => $tahunAktif, // Tambahkan tahun agar data antar tahun tidak bertabrakan
                 ],
                 [
-                    'penilai_id'     => auth()->id(),
-                    'skor'           => $request->skor,
-                    'catatan_atasan' => $request->catatan_atasan
+                    'penilai_id' => auth()->id(),
+                    'skor' => $request->skor,
+                    'catatan_atasan' => $request->catatan_atasan,
                 ]
             );
 
             // 2. LOGIKA NOTIFIKASI: Update status berkas di level Tupoksi
             // Cari tahu kriteria ini milik tupoksi mana
             $kriteria = KriteriaTupoksi::find($request->kriteria_id);
-            
+
             // Cari berkas yang diupload staff untuk tupoksi ini pada periode aktif
             $berkas = BerkasKinerja::where('user_id', $request->pegawai_id)
-                        ->where('tupoksi_id', $kriteria->tupoksi_id)
-                        ->where('triwulan', $triwulanAktif)
-                        ->where('tahun', $tahunAktif)
-                        ->first();
+                ->where('tupoksi_id', $kriteria->tupoksi_id)
+                ->where('triwulan', $triwulanAktif)
+                ->where('tahun', $tahunAktif)
+                ->first();
 
             // Jika ada berkasnya, ubah status menjadi 'sudah' agar hilang dari notifikasi bell
             if ($berkas) {
@@ -212,20 +217,22 @@ class KinerjaController extends Controller
 
             // 3. Catat Log Aktivitas (Sesuai Kriteria Dokumen Hal 4)
             ActivityLog::create([
-                'user_id'       => auth()->id(),
-                'action'        => 'GIVE_SCORE',
+                'user_id' => auth()->id(),
+                'action' => 'GIVE_SCORE',
                 'subject_table' => 'penilaian',
-                'subject_id'    => $penilaian->id,
-                'description'   => "Memberikan skor {$request->skor} pada Kriteria ID: {$request->kriteria_id} (Pegawai ID: {$request->pegawai_id})",
-                'ip_address'    => $request->ip()
+                'subject_id' => $penilaian->id,
+                'description' => "Memberikan skor {$request->skor} pada Kriteria ID: {$request->kriteria_id} (Pegawai ID: {$request->pegawai_id})",
+                'ip_address' => $request->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Penilaian berhasil disimpan.');
-            
+
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("Error simpanPenilaian: " . $e->getMessage());
+            Log::error('Error simpanPenilaian: '.$e->getMessage());
+
             return back()->with('error', 'Gagal menyimpan penilaian. Silakan hubungi admin.');
         }
     }
@@ -234,21 +241,20 @@ class KinerjaController extends Controller
     public function storeUpload(Request $request)
     {
         // Middleware CheckQuarterLock akan memproses ini dulu
-        
+
         $request->validate([
             'tupoksi_id' => 'required|exists:tupoksi,id',
-            'triwulan'   => 'required|in:1,2,3,4', // Pastikan triwulan valid
+            'triwulan' => 'required|in:1,2,3,4', // Pastikan triwulan valid
             'file_bukti' => 'required|mimes:pdf,jpg,png|max:5120',
         ]);
 
-        
         DB::beginTransaction();
         try {
             $tahun = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
             $folder = "berkas-kinerja/{$tahun}/T{$request->triwulan}";
 
             $file = $request->file('file_bukti');
-            $filename = time() . '_' . auth()->user()->nip . '.' . $file->getClientOriginalExtension();
+            $filename = time().'_'.auth()->user()->nip.'.'.$file->getClientOriginalExtension();
             $path = $file->storeAs($folder, $filename, 'public');
             // Cegah penumpukan baris database; Jika berkas sudah ada, timpa file fisik lama dan update path-nya
             $berkas = BerkasKinerja::where('user_id', auth()->id())
@@ -263,7 +269,7 @@ class KinerjaController extends Controller
                 }
                 $berkas->update([
                     'file_path' => $path,
-                    'status_penilaian' => 'belum'
+                    'status_penilaian' => 'belum',
                 ]);
             } else {
                 $berkas = BerkasKinerja::create([
@@ -272,7 +278,7 @@ class KinerjaController extends Controller
                     'triwulan' => $request->triwulan,
                     'tahun' => $tahun,
                     'file_path' => $path,
-                    'status_penilaian' => 'belum'
+                    'status_penilaian' => 'belum',
                 ]);
             }
 
@@ -283,15 +289,19 @@ class KinerjaController extends Controller
                 'subject_table' => 'berkas_kinerjas',
                 'subject_id' => $berkas->id,
                 'description' => "Staff mengunggah berkas bukti untuk Tupoksi ID: {$request->tupoksi_id}",
-                'ip_address' => $request->ip()
+                'ip_address' => $request->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Berkas berhasil diunggah.');
         } catch (\Exception $e) {
             DB::rollBack();
-            if (isset($path)) Storage::disk('public')->delete($path);
-            \Log::error("Error storeUpload: " . $e->getMessage());
+            if (isset($path)) {
+                Storage::disk('public')->delete($path);
+            }
+            \Log::error('Error storeUpload: '.$e->getMessage());
+
             return back()->with('error', 'Gagal mengunggah berkas.');
         }
     }
@@ -309,19 +319,19 @@ class KinerjaController extends Controller
         // Karena penilaian sekarang terhubung ke kriteria, bukan ke berkas
         $tupoksi = $berkas->tupoksi;
         if ($tupoksi) {
-            $adaPenilaian = \App\Models\Penilaian::whereHas('kriteria', function($q) use ($tupoksi) {
+            $adaPenilaian = \App\Models\Penilaian::whereHas('kriteria', function ($q) use ($tupoksi) {
                 $q->where('tupoksi_id', $tupoksi->id);
             })
-            ->where('user_id', $berkas->user_id)
-            ->where('triwulan', $berkas->triwulan)
-            ->where('tahun', $berkas->tahun)
-            ->exists();
+                ->where('user_id', $berkas->user_id)
+                ->where('triwulan', $berkas->triwulan)
+                ->where('tahun', $berkas->tahun)
+                ->exists();
 
             if ($adaPenilaian) {
                 return back()->with('error', 'Tupoksi ini sudah dinilai, Anda tidak dapat menghapus berkas.');
             }
         }
-        
+
         // 3. Cek Locking System & Deadline Otoritatif
         $triwulan = $berkas->triwulan;
         $isLocked = DB::table('settings')->where('key', 'lock_t'.$triwulan)->where('value', '1')->exists();
@@ -336,7 +346,7 @@ class KinerjaController extends Controller
         try {
             $path = $berkas->file_path;
             $berkasId = $berkas->id;
-            
+
             // 4. Hapus File Fisik dari Storage terlebih dahulu
             if (Storage::disk('public')->exists($path)) {
                 Storage::disk('public')->delete($path);
@@ -352,18 +362,19 @@ class KinerjaController extends Controller
                 'subject_table' => 'berkas_kinerjas',
                 'subject_id' => $berkasId,
                 'description' => "Staff menghapus berkas ID: $berkasId",
-                'ip_address' => request()->ip()
+                'ip_address' => request()->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Berkas berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Error hapusBerkas: " . $e->getMessage());
+            \Log::error('Error hapusBerkas: '.$e->getMessage());
+
             return back()->with('error', 'Gagal menghapus berkas.');
         }
     }
-
 
     public function hapusKriteria($id)
     {
@@ -390,14 +401,16 @@ class KinerjaController extends Controller
                 'subject_table' => 'kriteria_tupoksi',
                 'subject_id' => $id,
                 'description' => "Kadis menghapus PERMANEN kriteria: '$namaKriteria' beserta seluruh riwayat nilai di dalamnya.",
-                'ip_address' => request()->ip()
+                'ip_address' => request()->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Kriteria dan seluruh data nilai terkait berhasil dihapus permanen.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Error hapusKriteria: " . $e->getMessage());
+            \Log::error('Error hapusKriteria: '.$e->getMessage());
+
             return back()->with('error', 'Gagal menghapus kriteria.');
         }
     }
@@ -413,7 +426,7 @@ class KinerjaController extends Controller
                 abort(403);
             }
 
-            if (!Storage::disk('public')->exists($berkas->file_path)) {
+            if (! Storage::disk('public')->exists($berkas->file_path)) {
                 return back()->with('error', 'File tidak ditemukan di server.');
             }
 
@@ -423,12 +436,13 @@ class KinerjaController extends Controller
                 'subject_table' => 'berkas_kinerjas',
                 'subject_id' => $id,
                 'description' => "Mendownload berkas ID: $id",
-                'ip_address' => request()->ip()
+                'ip_address' => request()->ip(),
             ]);
 
             return Storage::disk('public')->download($berkas->file_path);
         } catch (\Exception $e) {
-            \Log::error("Error downloadBerkas: " . $e->getMessage());
+            \Log::error('Error downloadBerkas: '.$e->getMessage());
+
             return back()->with('error', 'Gagal mendownload berkas.');
         }
     }
@@ -452,7 +466,7 @@ class KinerjaController extends Controller
         DB::beginTransaction();
         try {
             $kriteria = KriteriaTupoksi::findOrFail($id);
-            
+
             // Simpan data lama untuk log (opsional tapi bagus untuk audit)
             $oldName = $kriteria->nama_kriteria;
 
@@ -473,14 +487,16 @@ class KinerjaController extends Controller
                 'subject_table' => 'kriteria_tupoksi',
                 'subject_id' => $kriteria->id,
                 'description' => "Kadis mengubah kriteria dari '$oldName' menjadi '{$request->nama_kriteria}'",
-                'ip_address' => $request->ip()
+                'ip_address' => $request->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Kriteria berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Error updateKriteria: " . $e->getMessage());
+            \Log::error('Error updateKriteria: '.$e->getMessage());
+
             return back()->with('error', 'Gagal memperbarui kriteria.');
         }
     }
@@ -513,15 +529,15 @@ class KinerjaController extends Controller
         $tahunAktif = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
         // Mengambil Tupoksi beserta Kriteria dan Berkas yang terikat pada Tupoksi tersebut
-        $tupoksis = Tupoksi::with(['kriteria' => function($q) use ($triwulanAktif) {
+        $tupoksis = Tupoksi::with(['kriteria' => function ($q) use ($triwulanAktif) {
             $q->where('t'.$triwulanAktif, true);
-        }, 'berkasKinerja' => function($q) use ($user, $triwulanAktif) {
+        }, 'berkasKinerja' => function ($q) use ($user, $triwulanAktif) {
             // Relasi berkas sekarang ke tupoksi_id (hasil migrasi terbaru)
             $q->where('user_id', $user->id)->where('triwulan', $triwulanAktif);
         }])
-        ->where('user_id', $user->id)
-        ->where('tahun', $tahunAktif)
-        ->get();
+            ->where('user_id', $user->id)
+            ->where('tahun', $tahunAktif)
+            ->get();
 
         return view('kinerja.index', compact('tupoksis', 'triwulanAktif', 'tahunAktif'));
     }
@@ -567,17 +583,17 @@ class KinerjaController extends Controller
                 'subject_table' => 'tupoksi',
                 'subject_id' => $id,
                 'description' => "Kadis menghapus PERMANEN Butir Tupoksi: '$namaTupoksi' beserta SELURUH kriteria, berkas, dan nilai di dalamnya.",
-                'ip_address' => request()->ip()
+                'ip_address' => request()->ip(),
             ]);
 
             DB::commit();
+
             return back()->with('success', 'Butir Tupoksi dan seluruh data di dalamnya berhasil dihapus permanen.');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error("Error hapusTupoksi: " . $e->getMessage());
+            \Log::error('Error hapusTupoksi: '.$e->getMessage());
+
             return back()->with('error', 'Gagal menghapus Tupoksi.');
         }
     }
-
-    
 }

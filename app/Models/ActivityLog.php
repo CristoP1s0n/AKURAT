@@ -9,8 +9,8 @@ class ActivityLog extends Model
     protected $table = 'activity_logs';
 
     protected $fillable = [
-        'user_id', 'action', 'subject_table', 'subject_id', 
-        'description', 'properties', 'ip_address'
+        'user_id', 'action', 'subject_table', 'subject_id',
+        'description', 'properties', 'ip_address',
     ];
 
     // Mengonversi kolom properties (JSON) menjadi array secara otomatis

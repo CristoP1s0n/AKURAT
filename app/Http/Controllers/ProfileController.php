@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
@@ -33,8 +31,8 @@ class ProfileController extends Controller
 
         // Validasi: Email dibuat opsional (nullable) agar tidak memaksa user
         $request->validate([
-            'nama'   => 'required|string|max:255',
-            'email'  => 'nullable|email|max:255|unique:users,email,'.$user->id,
+            'nama' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255|unique:users,email,'.$user->id,
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
@@ -75,8 +73,8 @@ class ProfileController extends Controller
         return back()->with('success', 'Password berhasil diubah.');
     }
 
-    /* 
-       Catatan: Fungsi destroy (Hapus Akun) dihilangkan 
+    /*
+       Catatan: Fungsi destroy (Hapus Akun) dihilangkan
        agar pegawai tidak bisa menghapus akun dinasnya sendiri.
     */
 }

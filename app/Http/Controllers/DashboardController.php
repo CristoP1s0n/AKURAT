@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\UnitKerja;
 use App\Models\BerkasKinerja;
-use App\Models\KriteriaTupoksi;
 use App\Models\Tupoksi;
+use App\Models\UnitKerja;
+use App\Models\User;
 use App\Services\PerformanceService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -28,7 +26,7 @@ class DashboardController extends Controller
         // 1. Ambil Semua Unit & Pegawai
         $allUnits = UnitKerja::all();
         $semuaPegawai = User::where('role', '!=', 'kadis')->with('unitKerja')->get();
-        
+
         // 2. Identifikasi Unit "Level 1" (Sekretariat & Bidang-bidang)
         // Yaitu unit yang parent_id-nya menunjuk ke Root (Dinas Kesehatan)
         $rootUnit = $allUnits->whereNull('parent_id')->first();
@@ -37,7 +35,7 @@ class DashboardController extends Controller
         // 3. Statistik Dasar
         $totalPegawai = $semuaPegawai->count();
         $berkasBelumDinilai = BerkasKinerja::where('status_penilaian', 'belum')
-                                ->where('triwulan', $triwulan)->where('tahun', $tahun)->count();
+            ->where('triwulan', $triwulan)->where('tahun', $tahun)->count();
 
         // 4. Kalkulasi Kinerja & Pemetaan
         $dataKinerja = [];
@@ -47,7 +45,7 @@ class DashboardController extends Controller
         foreach ($semuaPegawai as $p) {
             $skor = $this->perfService->hitungNilaiTriwulan($p, $triwulan, $tahun);
             $predikat = $this->perfService->getPredikat($skor);
-            
+
             // Cari "Bidang Induk" dari pegawai ini
             $bidangId = null;
             $currentUnit = $allUnits->where('id', $p->unit_id)->first();
@@ -66,7 +64,7 @@ class DashboardController extends Controller
                 'nama' => $p->nama,
                 'nip' => $p->nip,
                 'skor' => $skor,
-                'bidang_id' => $bidangId
+                'bidang_id' => $bidangId,
             ];
 
             $skorTotalDinas += $skor;
@@ -83,16 +81,16 @@ class DashboardController extends Controller
 
             $bidangAverages[] = [
                 'label' => str_replace(['Bidang ', 'Sub Bagian '], '', $unit->nama_unit),
-                'value' => round($avg, 2)
+                'value' => round($avg, 2),
             ];
         }
 
         // 6. Progress Unggah (Berdasarkan jumlah baris Tupoksi yang ada)
         $totalTupoksiInstance = Tupoksi::where('tahun', $tahun)->count();
         $totalBerkasUploaded = BerkasKinerja::where('triwulan', $triwulan)
-                                ->where('tahun', $tahun)
-                                ->where('file_path', '!=', '-')
-                                ->count();
+            ->where('tahun', $tahun)
+            ->where('file_path', '!=', '-')
+            ->count();
         $progressUpload = $totalTupoksiInstance > 0 ? round(($totalBerkasUploaded / $totalTupoksiInstance) * 100) : 0;
 
         // 7. Ranking

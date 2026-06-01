@@ -1,14 +1,13 @@
 <?php
 
-use App\Http\Controllers\KinerjaController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\UnitKerjaController;
+use App\Http\Controllers\KinerjaController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\UnitKerjaController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-
 
 // 1. Halaman Publik
 Route::get('/', function () {
@@ -18,7 +17,7 @@ Route::get('/', function () {
 // 2. Rute Terproteksi (Harus Login & Akun Aktif)
 // Saya tambahkan middleware 'active' agar akun non-aktif langsung tertendang
 Route::middleware(['auth', 'active', 'verified'])->group(function () {
-    
+
     // --- DASHBOARD ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -34,7 +33,7 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
 
     // --- FITUR KINERJA (STAFF / SEMUA PEGAWAI) ---
     Route::prefix('kinerja')->name('kinerja.')->group(function () {
-        
+
         // Rute Lihat & Download (TIDAK TERKUNCI)
         Route::get('/berkas', [KinerjaController::class, 'indexUpload'])->name('index');
         Route::get('/berkas/download/{id}', [KinerjaController::class, 'downloadBerkas'])->name('berkas.download');
@@ -76,7 +75,6 @@ Route::middleware(['auth', 'active', 'verified'])->group(function () {
         // Rute Manajemen Tupoksi
         Route::post('/tupoksi/store', [KinerjaController::class, 'storeTupoksi'])->name('tupoksi.store');
         Route::delete('/tupoksi/hapus/{id}', [KinerjaController::class, 'hapusTupoksi'])->name('tupoksi.destroy');
-    
 
         Route::prefix('kriteria')->name('kriteria.')->group(function () {
             Route::post('/store', [KinerjaController::class, 'storeKriteria'])->name('store');

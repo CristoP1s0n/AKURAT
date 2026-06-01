@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class SettingSeeder extends Seeder
@@ -18,10 +17,10 @@ class SettingSeeder extends Seeder
             ['key' => 'tahun_aktif', 'value' => date('Y')],
 
             // Pengaturan Tanggal Batas Akhir (Deadline) Otomatis
-            ['key' => 't1_deadline', 'value' => date('Y') . '-03-31'],
-            ['key' => 't2_deadline', 'value' => date('Y') . '-06-30'],
-            ['key' => 't3_deadline', 'value' => date('Y') . '-09-30'],
-            ['key' => 't4_deadline', 'value' => date('Y') . '-12-31'],
+            ['key' => 't1_deadline', 'value' => date('Y').'-03-31'],
+            ['key' => 't2_deadline', 'value' => date('Y').'-06-30'],
+            ['key' => 't3_deadline', 'value' => date('Y').'-09-30'],
+            ['key' => 't4_deadline', 'value' => date('Y').'-12-31'],
 
             // Pengunci Manual (Override) - Jika 1, maka tetap terkunci walau belum deadline
             ['key' => 'lock_t1', 'value' => '0'],

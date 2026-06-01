@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('penilaian', function (Blueprint $table) {
-            // Tambahkan kolom tahun. Gunakan nullable() jika sudah ada data, 
+            // Tambahkan kolom tahun. Gunakan nullable() jika sudah ada data,
             // lalu nanti kita isi secara manual atau lewat seeder.
-            if (!Schema::hasColumn('penilaian', 'tahun')) {
+            if (! Schema::hasColumn('penilaian', 'tahun')) {
                 $table->year('tahun')->nullable()->after('triwulan');
             }
         });

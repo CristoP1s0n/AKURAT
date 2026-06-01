@@ -25,9 +25,9 @@ class KriteriaTupoksi extends Model
     // Query Scope untuk memfilter triwulan (seperti langkah sebelumnya)
     public function scopeAktifTriwulan($query, $triwulan)
     {
-        return $query->where('t' . $triwulan, true);
+        return $query->where('t'.$triwulan, true);
     }
-    
+
     public function penilaian()
     {
         // Kriteria punya banyak penilaian (T1, T2, T3, T4)

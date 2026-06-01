@@ -28,6 +28,7 @@ class CheckQuarterLockTest extends TestCase
     use RefreshDatabase;
 
     private User $staff;
+
     private User $kadis;
 
     protected function setUp(): void
@@ -69,7 +70,7 @@ class CheckQuarterLockTest extends TestCase
      */
     public function test_staff_dapat_akses_periode_terbuka(): void
     {
-        $this->seedSettings(lockT1: '0', deadlineT1: date('Y') . '-12-31');
+        $this->seedSettings(lockT1: '0', deadlineT1: date('Y').'-12-31');
 
         $response = $this->actingAs($this->staff)
             ->post('/test-lock/1');
@@ -87,7 +88,7 @@ class CheckQuarterLockTest extends TestCase
      */
     public function test_staff_diblokir_saat_manual_lock_aktif(): void
     {
-        $this->seedSettings(lockT1: '1', deadlineT1: date('Y') . '-12-31');
+        $this->seedSettings(lockT1: '1', deadlineT1: date('Y').'-12-31');
 
         $response = $this->actingAs($this->staff)
             ->post('/test-lock/1');
@@ -163,7 +164,7 @@ class CheckQuarterLockTest extends TestCase
      */
     public function test_api_client_mendapat_json_403_saat_locked(): void
     {
-        $this->seedSettings(lockT1: '1', deadlineT1: date('Y') . '-12-31');
+        $this->seedSettings(lockT1: '1', deadlineT1: date('Y').'-12-31');
 
         $response = $this->actingAs($this->staff)
             ->postJson('/test-lock/1');

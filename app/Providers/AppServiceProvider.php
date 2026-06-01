@@ -2,13 +2,13 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use App\Services\PerformanceService;
-use Illuminate\Support\Facades\View;
 use App\Models\BerkasKinerja;
+use App\Services\PerformanceService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
-class AppServiceProvider extends  ServiceProvider
+class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
@@ -16,7 +16,7 @@ class AppServiceProvider extends  ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PerformanceService::class, function ($app) {
-            return new PerformanceService();
+            return new PerformanceService;
         });
     }
 
@@ -30,20 +30,20 @@ class AppServiceProvider extends  ServiceProvider
             // Cek apakah user sudah login sebelum menjalankan query
             if (auth()->check()) {
                 $user = auth()->user();
-                
+
                 // Ambil Triwulan dari Session Pilihan, jika tidak ada pakai default database
                 $triwulan = session('periode_pilihan', ceil(date('n') / 3));
                 $tahun = DB::table('settings')->where('key', 'tahun_aktif')->value('value') ?? date('Y');
 
                 // 1. Inisialisasi Query (Ambil berkas yang belum dinilai)
                 $query = BerkasKinerja::where('status_penilaian', 'belum')
-                                      ->where('triwulan', $triwulan)
-                                      ->where('tahun', $tahun)
-                                      ->with('user');
+                    ->where('triwulan', $triwulan)
+                    ->where('tahun', $tahun)
+                    ->with('user');
 
                 // 2. Filter Otoritas (Kadin melihat semua, Atasan hanya melihat bawan)
                 if ($user->role !== 'kadis') {
-                    $query->whereHas('user', function($q) use ($user) {
+                    $query->whereHas('user', function ($q) use ($user) {
                         $q->where('parent_id', $user->id);
                     });
                 }

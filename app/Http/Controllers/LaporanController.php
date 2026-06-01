@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\PerformanceService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class LaporanController extends Controller
@@ -15,7 +14,7 @@ class LaporanController extends Controller
     {
         $this->perfService = $perfService;
     }
-    
+
     public function index()
     {
         $user = auth()->user();
@@ -23,7 +22,7 @@ class LaporanController extends Controller
 
         // AMBIL PERIODE DARI SESSION (Agar sinkron dengan Header)
         $triwulanAktif = session('periode_pilihan', ceil(date('n') / 3));
-        
+
         // Logika Otoritas Akses
         if ($user->role == 'kadis') {
             $dataLaporan = User::where('role', '!=', 'kadis')->with('unitKerja')->get();
@@ -31,10 +30,10 @@ class LaporanController extends Controller
             // Kabag, Kasie, dan Staff selalu melihat diri mereka sendiri.
             // Tambahkan juga bawahan langsung jika mereka memilikinya.
             $dataLaporan = User::where('id', $user->id)
-                               ->orWhere('parent_id', $user->id)
-                               ->with('unitKerja')
-                               ->orderBy('role', 'asc') // Urutkan supaya atasan selalu muncul pertama
-                               ->get();
+                ->orWhere('parent_id', $user->id)
+                ->with('unitKerja')
+                ->orderBy('role', 'asc') // Urutkan supaya atasan selalu muncul pertama
+                ->get();
         }
 
         // Kalkulasi skor tahunan untuk setiap pegawai
