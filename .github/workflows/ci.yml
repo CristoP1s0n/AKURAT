@@ -59,7 +59,7 @@ jobs:
             echo "✏️  Pint menemukan dan memperbaiki style issues:"
             git diff --name-only
             git add -A
-            git commit -m "style: auto-fix PSR-12 via Laravel Pint [skip ci]"
+            git commit -m "style: auto-fix PSR-12 via Laravel Pint [skip actions]"
             git push
           else
             echo "✅ Tidak ada style issues — kode sudah bersih!"
