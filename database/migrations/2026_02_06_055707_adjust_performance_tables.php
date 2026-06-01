@@ -10,21 +10,23 @@ return new class extends Migration
     /**
      * Nonaktifkan transaction wrapper untuk migration ini.
      *
-     * SQLite tidak mengizinkan perubahan PRAGMA di dalam transaction aktif.
-     * Laravel secara default membungkus setiap migration dalam transaction,
-     * sehingga PRAGMA foreign_keys=OFF menjadi no-op jika $withinTransaction = true.
-     * Referensi: https://www.sqlite.org/pragma.html#pragma_foreign_keys
-     */
-    public bool $withinTransaction = false;
-
-    /**
-     * Run the migrations.
+     * Menggunakan constructor (bukan property declaration) karena PHP 8.4
+     * melarang redeclaration property bertipe yang sudah ada di parent class.
+     * $withinTransaction sudah dideklarasikan sebagai `public bool` di
+     * Illuminate\Database\Migrations\Migration — kita hanya mengubah nilainya.
      *
-     * Kompatibilitas SQLite: SQLite merekonstruksi seluruh tabel saat DROP COLUMN.
-     * Jika kolom yang di-drop memiliki FK constraint, SQLite gagal validasi setelah
-     * rekonstruksi. Solusi: matikan FK enforcement sementara dengan PRAGMA.
-     * PRAGMA hanya bisa dijalankan di LUAR transaction (lihat $withinTransaction).
+     * Alasan dibutuhkan: SQLite tidak mengizinkan PRAGMA foreign_keys=OFF
+     * di dalam active transaction. Laravel membungkus migration dalam
+     * transaction secara default. Dengan $withinTransaction = false, PRAGMA
+     * dapat berjalan sebelum Schema::table() dipanggil.
+     *
+     * Ref: https://www.sqlite.org/pragma.html#pragma_foreign_keys
      */
+    public function __construct()
+    {
+        $this->withinTransaction = false;
+    }
+
     public function up(): void
     {
         if (DB::getDriverName() === 'sqlite') {
