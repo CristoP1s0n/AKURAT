@@ -8,16 +8,25 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
+     * Nonaktifkan transaction wrapper untuk migration ini.
+     *
+     * SQLite tidak mengizinkan perubahan PRAGMA di dalam transaction aktif.
+     * Laravel secara default membungkus setiap migration dalam transaction,
+     * sehingga PRAGMA foreign_keys=OFF menjadi no-op jika $withinTransaction = true.
+     * Referensi: https://www.sqlite.org/pragma.html#pragma_foreign_keys
+     */
+    public bool $withinTransaction = false;
+
+    /**
      * Run the migrations.
      *
-     * Catatan kompatibilitas SQLite:
-     * SQLite merekonstruksi seluruh tabel saat DROP COLUMN. Jika kolom yang
-     * di-drop masih memiliki FK constraint, SQLite akan gagal validasi setelah
-     * rekonstruksi. Solusi: matikan FK enforcement sementara selama migrasi.
+     * Kompatibilitas SQLite: SQLite merekonstruksi seluruh tabel saat DROP COLUMN.
+     * Jika kolom yang di-drop memiliki FK constraint, SQLite gagal validasi setelah
+     * rekonstruksi. Solusi: matikan FK enforcement sementara dengan PRAGMA.
+     * PRAGMA hanya bisa dijalankan di LUAR transaction (lihat $withinTransaction).
      */
     public function up(): void
     {
-        // Matikan FK enforcement sementara untuk SQLite (CI environment)
         if (DB::getDriverName() === 'sqlite') {
             DB::statement('PRAGMA foreign_keys=OFF');
         }
@@ -38,7 +47,6 @@ return new class extends Migration
             $table->tinyInteger('triwulan');
         });
 
-        // Aktifkan kembali FK enforcement
         if (DB::getDriverName() === 'sqlite') {
             DB::statement('PRAGMA foreign_keys=ON');
         }
