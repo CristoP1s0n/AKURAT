@@ -1,0 +1,179 @@
+name: AKURAT CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # JOB 0: Setup bersama (dijalankan sekali, di-cache oleh runner)
+  # Setiap job paralel akan mengulang setup PHP + Composer karena
+  # GitHub Actions mengisolasi setiap job di runner terpisah.
+  # ─────────────────────────────────────────────────────────────
+
+  # JOB 1: LINTING — Memastikan gaya kode PSR-12 via Laravel Pint
+  lint:
+    name: 🎨 Lint (Laravel Pint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kode sumber
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json
+          coverage: none
+
+      - name: Cache dependensi Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependensi Composer
+        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Jalankan Laravel Pint (PSR-12 Linting)
+        run: vendor/bin/pint --test
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 2: MIGRATION TEST — Memverifikasi urutan & kompatibilitas
+  # seluruh 14 file migrasi pada database SQLite in-memory bersih
+  # ─────────────────────────────────────────────────────────────
+  migrate:
+    name: 🗃️ Migration Test (SQLite)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kode sumber
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4 dengan ekstensi SQLite
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Cache dependensi Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependensi Composer
+        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Salin environment file testing
+        run: cp .env.example .env
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Jalankan migrasi penuh pada database bersih
+        run: php artisan migrate:fresh --no-interaction
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 3: UNIT & FEATURE TESTS — Menguji logika bisnis inti
+  # (PerformanceService) dan keamanan middleware (CheckQuarterLock)
+  # ─────────────────────────────────────────────────────────────
+  test:
+    name: 🧪 Unit & Feature Tests (PHPUnit 11)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kode sumber
+        uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4 dengan ekstensi SQLite
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, pdo_sqlite, sqlite3
+          coverage: none
+
+      - name: Cache dependensi Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependensi Composer
+        run: composer install --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
+      - name: Salin environment file testing
+        run: cp .env.example .env
+
+      - name: Generate Application Key
+        run: php artisan key:generate
+
+      - name: Jalankan seluruh test suite (PHPUnit 11)
+        run: php artisan test --parallel --stop-on-failure
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+          BCRYPT_ROUNDS: 4
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 4: DEPLOY ke Azure VM
+  # Hanya berjalan pada push ke 'main' (bukan PR) dan HANYA jika
+  # ketiga job CI (lint, migrate, test) semuanya lulus.
+  # Alur: SSH ke VM → git pull → bash deploy.sh
+  # ─────────────────────────────────────────────────────────────
+  deploy:
+    name: 🚀 Deploy ke Azure VM
+    runs-on: ubuntu-latest
+    needs: [lint, migrate, test]  # Tunggu semua CI job selesai
+    # Guard: hanya deploy jika ini adalah push langsung ke main,
+    # bukan dari pull_request event.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production  # Terhubung ke GitHub Environment 'production'
+    steps:
+      - name: Deploy via SSH ke Azure VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          port: 22
+          script: |
+            set -e  # Hentikan jika ada perintah yang gagal
+
+            echo "📥 Pindah ke direktori aplikasi..."
+            cd /var/www/akurat
+
+            echo "🔄 Ambil kode terbaru dari main..."
+            git pull origin main
+
+            echo "🐳 Build ulang container dan jalankan..."
+            bash deploy.sh
+
+            echo "✅ Deploy selesai! AKURAT versi terbaru sudah live."
+
+      - name: Notifikasi hasil deploy
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Deploy ke Azure VM BERHASIL pada $(date)"
+          else
+            echo "❌ Deploy ke Azure VM GAGAL pada $(date)"
+          fi
