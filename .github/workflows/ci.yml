@@ -180,7 +180,7 @@ jobs:
             set -e  # Hentikan jika ada perintah yang gagal
 
             echo "📥 Pindah ke direktori aplikasi..."
-            cd /var/www/akurat
+            cd AKURAT
 
             echo "🔄 Ambil kode terbaru dari main..."
             git pull origin main
