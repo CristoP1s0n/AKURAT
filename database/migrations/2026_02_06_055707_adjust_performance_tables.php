@@ -35,14 +35,13 @@ return new class extends Migration
 
         Schema::table('berkas_kinerja', function (Blueprint $table) {
             $table->foreignId('tupoksi_id')->nullable()->constrained('tupoksi')->onDelete('cascade');
+            $table->dropForeign(['kriteria_id']);
             $table->dropColumn('kriteria_id');
         });
 
         Schema::table('penilaian', function (Blueprint $table) {
-            // dropForeign hanya didukung PostgreSQL & MySQL, bukan SQLite
-            if (DB::getDriverName() !== 'sqlite') {
-                $table->dropForeign(['berkas_id']);
-            }
+            $table->dropForeign(['berkas_id']);
+            $table->dropUnique(['berkas_id']);
             $table->dropColumn('berkas_id');
             $table->foreignId('kriteria_id')->constrained('kriteria_tupoksi')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');

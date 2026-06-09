@@ -31,7 +31,13 @@ class UserFactory extends Factory
             'role' => 'staff',
             'jabatan' => 'Staff Pelaksana',
             'golongan' => 'III/a',
-            'unit_id' => 1, // Pastikan ID ini ada di tabel unit_kerja
+            'unit_id' => fn () => \App\Models\UnitKerja::firstOrCreate(
+                ['id' => 1],
+                [
+                    'nama_unit' => 'Dinas Kesehatan Kota Manado',
+                    'level' => 'bidang',
+                ]
+            )->id,
             'is_active' => true,
             'remember_token' => Str::random(10),
         ];

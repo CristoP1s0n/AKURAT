@@ -152,7 +152,7 @@ class CheckQuarterLockTest extends TestCase
             });
 
         $response = $this->actingAs($this->staff)
-            ->post('/test-lock-no-param');
+            ->postJson('/test-lock-no-param');
 
         // Middleware mengembalikan 400 jika tidak ada parameter triwulan
         $response->assertStatus(400);
