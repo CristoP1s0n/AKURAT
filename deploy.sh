@@ -44,6 +44,10 @@ docker exec akurat_app php artisan optimize
 echo "⚡ [7/8] Menjalankan Pulse worker di latar belakang..."
 docker exec -d akurat_app php artisan pulse:work
 
+echo "🔍 [DIAGNOSTIC] Memeriksa status registrasi route Pulse..."
+docker exec akurat_app php artisan route:list --path=pulse || echo "❌ Route pulse tidak terdaftar!"
+docker exec akurat_app php artisan route:list | grep -i pulse || echo "❌ Tidak ada route pulse sama sekali!"
+
 echo ""
 echo "✅ [8/8] AKURAT BERHASIL DEPLOY!"
 echo "   Waktu  : $(date '+%Y-%m-%d %H:%M:%S WIB')"
