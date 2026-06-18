@@ -231,8 +231,8 @@ jobs:
             echo "📥 Pindah ke direktori aplikasi..."
             cd AKURAT
 
-            echo "🔄 Ambil kode terbaru dari main..."
-            git pull origin main
+            echo "🔄 Ambil kode terbaru dari repository trigger..."
+            git pull https://github.com/${{ github.repository }}.git main
 
             echo "🐳 Build ulang container dan jalankan..."
             bash deploy.sh
