@@ -27,7 +27,7 @@ echo "   ✅ Database siap!"
 echo "🗃️  [3/5] Menjalankan migrasi database..."
 docker exec akurat_app php artisan migrate --force
 
-echo "🔗 [4/5] Menyiapkan storage link & cache..."
+echo "🔗 [4/6] Menyiapkan storage link & cache..."
 docker exec akurat_app php artisan storage:link
 docker exec akurat_app php artisan config:clear
 docker exec akurat_app php artisan config:cache
@@ -35,8 +35,11 @@ docker exec akurat_app php artisan route:cache
 docker exec akurat_app php artisan view:cache
 docker exec akurat_app php artisan optimize
 
+echo "⚡ [5/6] Menjalankan Pulse worker di latar belakang..."
+docker exec -d akurat_app php artisan pulse:work
+
 echo ""
-echo "✅ [5/5] AKURAT BERHASIL DEPLOY!"
+echo "✅ [6/6] AKURAT BERHASIL DEPLOY!"
 echo "   Waktu  : $(date '+%Y-%m-%d %H:%M:%S WIB')"
 echo "   Branch : $(git rev-parse --abbrev-ref HEAD)"
 echo "   Commit : $(git rev-parse --short HEAD)"

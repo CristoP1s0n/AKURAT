@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\BerkasKinerja;
 use App\Services\PerformanceService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Otorisasi akses dashboard Laravel Pulse
+        Gate::define('viewPulse', function ($user) {
+            return $user->role === 'kadis' || $user->nip === '198505302005011001';
+        });
         // Masukkan logika View Composer di sini
         View::composer('layouts.app', function ($view) {
             // Cek apakah user sudah login sebelum menjalankan query
