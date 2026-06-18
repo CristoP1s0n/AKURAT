@@ -6,13 +6,16 @@
 # =============================================================
 set -e  # Hentikan seluruh script jika ada perintah yang gagal
 
-echo "🐳 [1/7] Build dan start container..."
+echo "🐳 [1/8] Build dan start container..."
 docker compose up -d --build
 
-echo "📦 [2/7] Memperbarui dependensi Composer (vendor)..."
+echo "📦 [2/8] Memperbarui dependensi Composer (vendor)..."
 docker exec akurat_app composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
-echo "⏳ [3/7] Menunggu database PostgreSQL siap..."
+echo "🔄 [3/8] Merestart container aplikasi agar autoloader baru terbaca..."
+docker compose restart app
+
+echo "⏳ [4/8] Menunggu database PostgreSQL siap..."
 # Loop health-check — lebih andal daripada sleep statis
 MAX_RETRIES=30
 COUNT=0
@@ -27,10 +30,10 @@ until docker exec akurat_db pg_isready -U postgres -d db_akurat > /dev/null 2>&1
 done
 echo "   ✅ Database siap!"
 
-echo "🗃️  [4/7] Menjalankan migrasi database..."
+echo "🗃️  [5/8] Menjalankan migrasi database..."
 docker exec akurat_app php artisan migrate --force
 
-echo "🔗 [5/7] Menyiapkan storage link & cache..."
+echo "🔗 [6/8] Menyiapkan storage link & cache..."
 docker exec akurat_app php artisan storage:link
 docker exec akurat_app php artisan config:clear
 docker exec akurat_app php artisan config:cache
@@ -38,11 +41,11 @@ docker exec akurat_app php artisan route:cache
 docker exec akurat_app php artisan view:cache
 docker exec akurat_app php artisan optimize
 
-echo "⚡ [6/7] Menjalankan Pulse worker di latar belakang..."
+echo "⚡ [7/8] Menjalankan Pulse worker di latar belakang..."
 docker exec -d akurat_app php artisan pulse:work
 
 echo ""
-echo "✅ [7/7] AKURAT BERHASIL DEPLOY!"
+echo "✅ [8/8] AKURAT BERHASIL DEPLOY!"
 echo "   Waktu  : $(date '+%Y-%m-%d %H:%M:%S WIB')"
 echo "   Branch : $(git rev-parse --abbrev-ref HEAD)"
 echo "   Commit : $(git rev-parse --short HEAD)"
