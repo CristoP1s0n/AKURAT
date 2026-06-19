@@ -1,0 +1,55 @@
+services:
+  # 1. Laravel App
+  app:
+    build: .
+    container_name: akurat_app
+    restart: always
+    volumes:
+      - .:/var/www
+    networks:
+      - akurat_net
+
+  # 2. Database PostgreSQL
+  db:
+    image: postgres:15
+    container_name: akurat_db
+    restart: always
+    environment:
+      POSTGRES_DB: db_akurat
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dinkesmanado2026
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - akurat_net
+
+  # 3. Nginx (Web Server)
+  nginx:
+    image: nginx:alpine
+    container_name: akurat_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www
+      - ./docker-conf/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - akurat_net
+
+  # 4. Cloudflare Tunnel
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: akurat_tunnel
+    restart: always
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoiMmZjZWYwNTQzNmUyNDczNGMxYzVlM2VhM2U1YzFhMDciLCJ0IjoiZmU2YWIwOWMtMWNjMC00NTRkLWFjM2UtMDMzMzhlNDdhMjA1IiwicyI6Ik1EVTBPVEppTm1JdFlURTRNQzAwWkRabExUaGtNMk10WldGbE5UbGpaV00xWVdFMFkySmlZMkkyTkRFdFlqRXpNaTAwTnpKaUxXSTJaakV0WmpReE1EY3pZMkV6WldVMyJ9
+    command: tunnel run
+    networks:
+      - akurat_net
+
+networks:
+  akurat_net:
+    driver: bridge
+
+volumes:
+  pgdata:
