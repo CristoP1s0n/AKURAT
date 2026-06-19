@@ -15,7 +15,7 @@
                     <i class="fas fa-user-circle mr-3 text-blue-400"></i> Informasi Pribadi
                 </h3>
                 
-                <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('profile.update.post') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="flex flex-col md:flex-row gap-8">
                         <!-- Preview Foto -->
