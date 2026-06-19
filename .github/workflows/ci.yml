@@ -231,6 +231,9 @@ jobs:
             echo "📥 Pindah ke direktori aplikasi..."
             cd AKURAT
 
+            echo "🧹 Reset perubahan lokal di VM..."
+            git reset --hard
+
             echo "🔄 Ambil kode terbaru dari repository trigger..."
             git pull https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
 
